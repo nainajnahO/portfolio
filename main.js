@@ -38,11 +38,13 @@ function select(row) {
   if (d.img) {
     panel.shotImg.src = d.img;
     panel.shotImg.alt = `${d.name} — screenshot`;
+    panel.shotBox.style.setProperty('--shot-img', `url("${d.img}")`);
     panel.shotBox.classList.add('has-img');
   } else {
     panel.shotBox.classList.remove('has-img');
     panel.shotImg.removeAttribute('src');
     panel.shotImg.alt = '';
+    panel.shotBox.style.removeProperty('--shot-img');
   }
 
   panel.name.textContent = d.name;

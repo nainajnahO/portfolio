@@ -218,15 +218,32 @@ body {
   overflow: hidden;
 }
 
-/* Real screenshot when a project has one; the striped box shows otherwise. */
+/* Real screenshot when a project has one; the striped box shows otherwise.
+   The image is shown whole (contain) so nothing is cropped, over an ambient
+   blurred zoom of the same image (::before) that fills the leftover space —
+   no letterbox bars, no per-project height change. --shot-img is set by main.js
+   (and inline on the default box, so it also works without JavaScript). */
 .panel__shot-img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  display: none;
+  z-index: 1;
+}
+.panel__shot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--shot-img);
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.2); /* overscan so the blur never bares a hard edge */
+  filter: blur(24px) saturate(1.15) brightness(.92);
   display: none;
 }
+.panel__shot.has-img::before { display: block; }
 .panel__shot.has-img .panel__shot-img { display: block; }
 .panel__shot.has-img .panel__shot-label { display: none; }
 
