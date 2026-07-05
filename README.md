@@ -1,5 +1,7 @@
 # Portfolio
 
+**Live:** <https://nainajnaho.github.io/portfolio/>
+
 A single-page portfolio: a big-type, colour-wash list of works with a quick-look
 panel. Hovering (or focusing / tapping) a project tints the card to that
 project's colour and updates the panel on the right.
