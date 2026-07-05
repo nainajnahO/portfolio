@@ -3,27 +3,28 @@
  * from a GitHub Pages project sub-path (…/portfolio/) as well as root.
  * ------------------------------------------------------------------ */
 @font-face {
-  font-family: 'Instrument Serif';
+  font-family: 'Young Serif';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('fonts/instrument-serif-400.woff2') format('woff2');
+  src: url('fonts/young-serif-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Variable font — one file serves both weights the site uses. */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('fonts/jetbrains-mono-400-500.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'IBM Plex Mono';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('fonts/ibm-plex-mono-400.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'IBM Plex Mono';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('fonts/ibm-plex-mono-500.woff2') format('woff2');
+  src: url('fonts/inter-400.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -42,9 +43,9 @@
   --line:        rgba(0, 0, 0, .09);
   --line-strong: rgba(0, 0, 0, .10);
 
-  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --mono:  'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
-  --sans:  system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --serif: 'Young Serif', Georgia, 'Times New Roman', serif;
+  --mono:  'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --sans:  'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* Set per active project by main.js; safe defaults for the no-JS view. */
   --accent: var(--ink);

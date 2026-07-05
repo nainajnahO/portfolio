@@ -9,7 +9,7 @@ const roles = [
   {
     key: 'serif',
     label: 'serif',
-    current: 'Instrument Serif',
+    current: 'Young Serif',
     fallback: "Georgia, 'Times New Roman', serif",
     suggestions: [
       'Playfair Display', 'Fraunces', 'DM Serif Display', 'EB Garamond',
@@ -21,7 +21,7 @@ const roles = [
   {
     key: 'mono',
     label: 'mono',
-    current: 'IBM Plex Mono',
+    current: 'JetBrains Mono',
     fallback: 'ui-monospace, Menlo, Consolas, monospace',
     suggestions: [
       'JetBrains Mono', 'Space Mono', 'Fira Code', 'Source Code Pro',
@@ -32,7 +32,7 @@ const roles = [
   {
     key: 'sans',
     label: 'sans',
-    current: 'system-ui',
+    current: 'Inter',
     fallback: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
     suggestions: [
       'Inter', 'DM Sans', 'Space Grotesk', 'Work Sans', 'Manrope',
