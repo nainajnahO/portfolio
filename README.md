@@ -50,10 +50,11 @@ type are the button's text; the panel detail lives in `data-*` attributes:
 - `data-img` — a screenshot in `images/`, shown cover-fit in the quick-look
   panel. Omit it to fall back to the striped placeholder.
 - `data-url` — the project's link (repo, site, App Store…).
-- `data-color` — the type accent. In use: iOS app `#7c6ff0`, AI `#3a9669`,
-  Data `#ab7d43`, Library `#8b93ab`, Game `#4f8ef7`. These were tuned from the
-  source design so the active-name text clears WCAG AA contrast (muted label
-  colour is `#797569`).
+- `data-color` — the type accent. In use: iOS app `#7c6ff0`, Full-stack
+  `#cc3f4d`, Tool `#008080`, AI `#3a9669`, Data `#ab7d43`, Library `#8b93ab`,
+  Game `#4f8ef7`. These were tuned from the source design (and checked against
+  the `#f0eee9` card) so the active-name text clears WCAG AA contrast (muted
+  label colour is `#797569`).
 
 To add a project, copy a `<li>` block and drop a matching image into `images/`.
 
