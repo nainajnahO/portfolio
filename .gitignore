@@ -1,0 +1,10 @@
+# Editor / IDE
+.idea/
+.vscode/
+
+# Python virtualenv (not part of the site)
+.venv/
+__pycache__/
+
+# macOS
+.DS_Store

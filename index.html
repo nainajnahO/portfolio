@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Name — Selected Works</title>
+  <meta name="description" content="Selected works — a portfolio of websites, data reports, apps, and machine-learning projects.">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f0eee9'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%232b2822'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <article class="card">
+      <!-- The wash layer tints to the active project's colour. -->
+      <div class="wash js-wash">
+
+        <!-- Left column: the selectable list of works. -->
+        <div class="list-col">
+          <div class="list-head">
+            <h1 class="list-head__title">Your Name — selected works</h1>
+            <span class="list-head__years">2023–26</span>
+          </div>
+
+          <ul class="list" role="list">
+            <li>
+              <button class="row js-row" type="button"
+                data-name="weather-vis" data-type="Website" data-color="#4f8ef7"
+                data-tech="D3.js · Node · WebSockets"
+                data-desc="Real-time weather dashboards with animated D3 maps, pulling from three public APIs. Live at weathervis.io."
+                data-cta="Visit site" data-url="#">
+                <span class="row__name">weather-vis</span>
+                <span class="row__type">Website</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+            <li>
+              <button class="row js-row" type="button"
+                data-name="census-atlas" data-type="Data report" data-color="#ab7d43"
+                data-tech="Python · Observable · GeoJSON"
+                data-desc="Interactive atlas of census statistics — 40 charts exploring how neighborhoods changed over a decade."
+                data-cta="Read report" data-url="#">
+                <span class="row__name">census-atlas</span>
+                <span class="row__type">Data report</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+            <li>
+              <button class="row js-row" type="button"
+                data-name="PocketLift" data-type="iOS app" data-color="#7c6ff0"
+                data-tech="Swift · SwiftUI · HealthKit"
+                data-desc="Workout tracker for iPhone with HealthKit sync, plate-math calculator, and offline-first logging."
+                data-cta="App Store" data-url="#">
+                <span class="row__name">PocketLift</span>
+                <span class="row__type">iOS app</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+            <li>
+              <button class="row js-row" type="button"
+                data-name="sentiment-lab" data-type="ML" data-color="#3a9669"
+                data-tech="PyTorch · FastAPI · Transformers"
+                data-desc="Sentiment-analysis playground: paste any text, compare three fine-tuned models side by side."
+                data-cta="Try demo" data-url="#">
+                <span class="row__name">sentiment-lab</span>
+                <span class="row__type">ML</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+            <li>
+              <button class="row js-row" type="button"
+                data-name="recipe-hub" data-type="Website" data-color="#4f8ef7"
+                data-tech="Next.js · Postgres"
+                data-desc="Community recipe site with fuzzy ingredient search and weekly meal planning. ~2k monthly users."
+                data-cta="Visit site" data-url="#">
+                <span class="row__name">recipe-hub</span>
+                <span class="row__type">Website</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+            <li>
+              <button class="row js-row" type="button"
+                data-name="commute-report" data-type="Data report" data-color="#ab7d43"
+                data-tech="R · Quarto · ggplot2"
+                data-desc="Statistical deep-dive on city commute times: 2M trips, regression models, and what actually predicts delay."
+                data-cta="Read report" data-url="#">
+                <span class="row__name">commute-report</span>
+                <span class="row__type">Data report</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+            <li>
+              <button class="row js-row" type="button"
+                data-name="handwriting-ocr" data-type="ML" data-color="#3a9669"
+                data-tech="TensorFlow · OpenCV"
+                data-desc="OCR model trained on messy handwriting — 94% character accuracy on a self-collected dataset of 12k samples."
+                data-cta="View repo" data-url="#">
+                <span class="row__name">handwriting-ocr</span>
+                <span class="row__type">ML</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+            <li>
+              <button class="row js-row" type="button"
+                data-name="synth-playground" data-type="Website" data-color="#4f8ef7"
+                data-tech="TypeScript · WebAudio"
+                data-desc="Browser synthesizer built on the WebAudio API — patch cables, oscillators, and a step sequencer."
+                data-cta="Play it" data-url="#">
+                <span class="row__name">synth-playground</span>
+                <span class="row__type">Website</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+            <li>
+              <button class="row js-row" type="button"
+                data-name="dotfiles" data-type="Tooling" data-color="#8b93ab"
+                data-tech="Shell · Lua"
+                data-desc="My scripted terminal environment: one command bootstraps a new machine with shell, editor, and CLI setup."
+                data-cta="View repo" data-url="#">
+                <span class="row__name">dotfiles</span>
+                <span class="row__type">Tooling</span>
+                <span class="row__arrow" aria-hidden="true">↗</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right column: quick look at the active project. Defaults to the first
+             project so the panel is meaningful before/without JavaScript. -->
+        <aside class="panel" aria-label="Selected project details">
+          <div class="panel__shot">
+            <span class="panel__shot-label js-shot">[ weather-vis — screenshot ]</span>
+          </div>
+          <h2 class="panel__name js-name">weather-vis</h2>
+          <p class="panel__meta js-meta">Website · D3.js · Node · WebSockets</p>
+          <p class="panel__desc js-desc">Real-time weather dashboards with animated D3 maps, pulling from three public APIs. Live at weathervis.io.</p>
+          <a class="panel__cta js-cta" href="#">
+            <span class="js-cta-text">Visit site</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </aside>
+
+      </div>
+    </article>
+  </main>
+
+  <script src="main.js" defer></script>
+</body>
+</html>

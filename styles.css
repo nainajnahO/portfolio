@@ -1,0 +1,298 @@
+/* ------------------------------------------------------------------ *
+ * Self-hosted fonts (latin subset). Relative paths so the site works
+ * from a GitHub Pages project sub-path (…/portfolio/) as well as root.
+ * ------------------------------------------------------------------ */
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/instrument-serif-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ibm-plex-mono-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/ibm-plex-mono-500.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ------------------------------------------------------------------ *
+ * Design tokens (from the source design)
+ * ------------------------------------------------------------------ */
+:root {
+  --bg:          #f0eee9;
+  --card:        #ffffff;
+  --ink:         #2b2822;
+  --muted:       #5c574b;
+  --faint:       #797569;
+  --shot-ink:    #6b6558;
+  --arrow-idle:  #c5bfaf;
+  --card-border: rgba(0, 0, 0, .08);
+  --line:        rgba(0, 0, 0, .09);
+  --line-strong: rgba(0, 0, 0, .10);
+
+  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --mono:  'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --sans:  system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Set per active project by main.js; safe defaults for the no-JS view. */
+  --accent: var(--ink);
+  --wash:   transparent;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--ink);
+  overflow-x: hidden; /* never scroll sideways */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ------------------------------------------------------------------ *
+ * Page shell — centres the card on the warm background
+ * ------------------------------------------------------------------ */
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 56px);
+}
+
+.card {
+  width: 100%;
+  max-width: 1040px;
+  min-width: 0; /* allow the flex child to stay within the viewport */
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 12px 40px rgba(0, 0, 0, .05);
+  overflow: hidden;
+}
+
+/* The tinting layer. */
+.wash {
+  display: flex;
+  background: var(--wash);
+  transition: background .35s ease;
+}
+
+/* ------------------------------------------------------------------ *
+ * Left column — the list
+ * ------------------------------------------------------------------ */
+.list-col {
+  flex: 1.5 1 0;
+  min-width: 0;
+  padding: clamp(24px, 3vw, 40px) 0 clamp(22px, 2.6vw, 34px) clamp(22px, 3.2vw, 44px);
+  border-right: 1px solid var(--line-strong);
+}
+
+.list-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 clamp(18px, 2vw, 28px) clamp(14px, 1.8vw, 22px) 0;
+}
+
+.list-head__title {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.list-head__years {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  /* reset the button */
+  width: 100%;
+  margin: 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: clamp(8px, 1vw, 11px) clamp(18px, 2vw, 24px) clamp(8px, 1vw, 11px) 0;
+}
+
+.row__name {
+  min-width: 0;
+  font-family: var(--serif);
+  font-size: clamp(25px, 2.7vw, 33px);
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  transition: color .2s ease;
+}
+
+.row__type {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.row__arrow {
+  margin-left: auto;
+  align-self: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--arrow-idle);
+  transition: color .2s ease;
+}
+
+/* Active / hovered / focused row picks up the project accent. */
+.row.is-active .row__name,
+.row.is-active .row__arrow { color: var(--accent); }
+
+.row:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+  border-radius: 3px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Right column — the quick-look panel
+ * ------------------------------------------------------------------ */
+.panel {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: clamp(24px, 3vw, 40px) clamp(22px, 2.6vw, 36px) clamp(22px, 2.6vw, 34px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel__shot {
+  height: clamp(150px, 20vw, 190px);
+  border-radius: 5px;
+  background: repeating-linear-gradient(-45deg,
+      rgba(0, 0, 0, .05) 0 10px,
+      rgba(0, 0, 0, .09) 10px 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel__shot-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--shot-ink);
+}
+
+.panel__name {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(24px, 2.4vw, 31px);
+  line-height: 1.05;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+
+.panel__meta {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.panel__desc {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.panel__cta {
+  margin-top: auto;
+  padding-top: 8px;
+  align-self: flex-start;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.panel__cta:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive — stack the columns on narrow screens
+ * ------------------------------------------------------------------ */
+@media (max-width: 720px) {
+  .wash { flex-direction: column; }
+
+  .list-col {
+    flex: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-strong);
+    padding: clamp(22px, 6vw, 30px) 0 clamp(14px, 4vw, 22px) clamp(20px, 6vw, 28px);
+  }
+
+  .panel {
+    flex: none;
+    padding: clamp(22px, 6vw, 30px) clamp(20px, 6vw, 28px) clamp(24px, 7vw, 32px);
+  }
+
+  /* Taller screenshot placeholder once the columns are stacked. */
+  .panel__shot { height: clamp(160px, 42vw, 200px); }
+}
+
+/* ------------------------------------------------------------------ *
+ * Respect users who prefer less motion
+ * ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .wash,
+  .row__name,
+  .row__arrow { transition: none; }
+}
