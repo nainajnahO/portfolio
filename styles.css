@@ -206,6 +206,7 @@ body {
 }
 
 .panel__shot {
+  position: relative;
   height: clamp(150px, 20vw, 190px);
   border-radius: 5px;
   background: repeating-linear-gradient(-45deg,
@@ -214,7 +215,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
+
+/* Real screenshot when a project has one; the striped box shows otherwise. */
+.panel__shot-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.panel__shot.has-img .panel__shot-img { display: block; }
+.panel__shot.has-img .panel__shot-label { display: none; }
 
 .panel__shot-label {
   font-family: var(--mono);

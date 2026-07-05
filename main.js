@@ -6,7 +6,9 @@ const wash = document.querySelector('.js-wash');
 const rows = Array.from(document.querySelectorAll('.js-row'));
 
 const panel = {
-  shot: document.querySelector('.js-shot'),
+  shotBox: document.querySelector('.js-shot-box'),
+  shotImg: document.querySelector('.js-shot-img'),
+  shotLabel: document.querySelector('.js-shot'),
   name: document.querySelector('.js-name'),
   meta: document.querySelector('.js-meta'),
   desc: document.querySelector('.js-desc'),
@@ -31,7 +33,18 @@ function select(row) {
     else r.removeAttribute('aria-current');
   });
 
-  panel.shot.textContent = `[ ${d.name} — screenshot ]`;
+  // Screenshot: show the project's image if it has one, else the striped box.
+  panel.shotLabel.textContent = `[ ${d.name} — screenshot ]`;
+  if (d.img) {
+    panel.shotImg.src = d.img;
+    panel.shotImg.alt = `${d.name} — screenshot`;
+    panel.shotBox.classList.add('has-img');
+  } else {
+    panel.shotBox.classList.remove('has-img');
+    panel.shotImg.removeAttribute('src');
+    panel.shotImg.alt = '';
+  }
+
   panel.name.textContent = d.name;
   panel.meta.textContent = `${d.type} · ${d.tech}`;
   panel.desc.textContent = d.desc;

@@ -13,7 +13,8 @@ Deliberately dependency-free — **no build step, no npm, no framework**:
 
 - `index.html` — markup and all project content
 - `styles.css` — styling, self-hosted `@font-face`, responsive + reduced-motion
-- `main.js` — ~40 lines of vanilla JS for the selection behaviour
+- `main.js` — vanilla JS for the selection behaviour
+- `images/` — per-project screenshots / social cards
 - `fonts/` — self-hosted [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif)
   and [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono) (latin `woff2`,
   [OFL](https://openfontlicense.org/))
@@ -35,21 +36,23 @@ type are the button's text; the panel detail lives in `data-*` attributes:
 
 ```html
 <button class="row js-row" type="button"
-  data-name="weather-vis" data-type="Website" data-color="#4f8ef7"
-  data-tech="D3.js · Node · WebSockets"
-  data-desc="Real-time weather dashboards…"
-  data-cta="Visit site" data-url="https://example.com">
-  <span class="row__name">weather-vis</span>
-  <span class="row__type">Website</span>
+  data-name="PureLenz" data-type="iOS app" data-color="#7c6ff0"
+  data-tech="Swift · SwiftUI · Core ML"
+  data-desc="A minimalist iOS camera with tactile manual control…"
+  data-img="images/purelenz.jpg"
+  data-cta="View repo" data-url="https://github.com/nainajnahO/PureLenz">
+  <span class="row__name">PureLenz</span>
+  <span class="row__type">iOS app</span>
   <span class="row__arrow" aria-hidden="true">↗</span>
 </button>
 ```
 
-Set `data-url` to the project's real link (it defaults to `#`). Colours are
-grouped by type: Website `#4f8ef7`, Data report `#ab7d43`, iOS app `#7c6ff0`,
-ML `#3a9669`, Tooling `#8b93ab`. Data report and ML were darkened slightly from
-the source design (and the muted label colour deepened to `#797569`) so the
-active-name and label text clear WCAG AA contrast.
+- `data-img` — a screenshot in `images/`, shown cover-fit in the quick-look
+  panel. Omit it to fall back to the striped placeholder.
+- `data-url` — the project's link (repo, site, App Store…).
+- `data-color` — the type accent. In use: iOS app `#7c6ff0`, AI `#3a9669`,
+  Data `#ab7d43`, Library `#8b93ab`, Game `#4f8ef7`. These were tuned from the
+  source design so the active-name text clears WCAG AA contrast (muted label
+  colour is `#797569`).
 
-> The projects and the "Your Name" heading are placeholder sample data from the
-> design — swap in your own.
+To add a project, copy a `<li>` block and drop a matching image into `images/`.
