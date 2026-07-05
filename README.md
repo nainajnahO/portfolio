@@ -56,3 +56,7 @@ type are the button's text; the panel detail lives in `data-*` attributes:
   colour is `#797569`).
 
 To add a project, copy a `<li>` block and drop a matching image into `images/`.
+
+When you edit `styles.css` or `main.js`, bump the `?v=` in their `index.html`
+tags (e.g. `styles.css?v=3`) so browsers fetch the new file instead of a cached
+copy.
