@@ -64,3 +64,11 @@ rows.forEach((row) => {
 
 // Start on the first project (matches the design's default index).
 if (rows.length) select(rows[0]);
+
+// Dev-only: visiting index.html?fonts loads a small HUD (fonts-hud.js) for
+// trying different Google Fonts live. Normal visitors never fetch it.
+if (new URLSearchParams(location.search).has('fonts')) {
+  const hud = document.createElement('script');
+  hud.src = 'fonts-hud.js';
+  document.head.append(hud);
+}
