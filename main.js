@@ -233,30 +233,42 @@ document.querySelector('.js-next').addEventListener('click', () => {
   animateTo(Math.round(angle / STEP) * STEP + STEP);
 });
 
-// Shrink the whole wheel uniformly on short viewports so the enlarged preview
-// card above it never gets clipped. The scale drives both the CSS geometry
-// (--wheel-scale → stage/perspective/ring/face sizes) and the JS depth (RADIUS),
-// so the 3D registration stays exact. RESERVED is the vertical budget the wheel
-// can't use — hero padding (80) + controls (~48) + preview padding (~8) + the
-// enlarged card's own min-content (~268); whatever the viewport has left over
-// sizes the 320px base stage. Floored so the wheel never shrinks to a token.
+// Shrink the whole wheel uniformly so the fixed 16:9 enlarged card above it stays
+// fully visible with as little page scroll as possible. The scale drives both the
+// CSS geometry (--wheel-scale → stage/perspective/ring/face sizes) and the JS depth
+// (RADIUS), so the 3D registration stays exact. The card is a fixed-height element
+// now, so we MEASURE it rather than guess: whatever viewport is left after the fixed
+// chrome and the card itself sizes the 320px base stage. Floored so the wheel never
+// shrinks to a token — past the floor the card wins and the page scrolls (see the
+// .wheel min-height in styles.css).
 const WHEEL_STAGE_BASE = 320;
-const WHEEL_RESERVED = 404;
 const WHEEL_MIN_SCALE = 0.62;
+// Fixed vertical costs outside the stage and the measured card: hero v-padding (80)
+// + the --block-top shared-top offset (90) + preview padding (8) + controls (~48).
+const WHEEL_CHROME = 226;
 
 function applyWheelScale() {
-  const fit = (window.innerHeight - WHEEL_RESERVED) / WHEEL_STAGE_BASE;
+  const cardH = previewCard.getBoundingClientRect().height;
+  const fit = (window.innerHeight - WHEEL_CHROME - cardH) / WHEEL_STAGE_BASE;
   const scale = Math.max(WHEEL_MIN_SCALE, Math.min(1, fit));
   document.documentElement.style.setProperty('--wheel-scale', scale.toFixed(4));
   RADIUS = BASE_RADIUS * scale;
 }
 
+// Fill the enlarged card first so applyWheelScale() measures its real height, then
+// size the wheel to it and lay out the faces at the resulting depth.
+settlePreview();
 applyWheelScale();
 render();
-settlePreview();
 
 // Re-fit on resize / rotate; render() re-lays the faces at the new depth.
 addEventListener('resize', () => { applyWheelScale(); render(); });
+
+// The card's height shifts once the web fonts load (title/blurb reflow); re-measure
+// then so the wheel is sized against the real card, not the fallback-font one.
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => { applyWheelScale(); render(); });
+}
 
 // Theme control: two native radios select light/dark. Applying = set data-theme on
 // <html> and persist. The initial theme is set pre-paint by the head script; here we

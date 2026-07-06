@@ -235,6 +235,10 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   box-sizing: border-box;
+  /* Both columns start at a shared top line ~90px down: the GEN X copy and the
+     enlarged card begin at the same height rather than centring independently.
+     Reset to 0 on the stacked phone layout below. */
+  --block-top: 90px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: 48px;
@@ -243,25 +247,28 @@ body {
   position: relative;
 }
 
-/* The spec set the hero copy in white directly on the photograph, which
-   fails WCAG AA contrast (measured 1.6–2.6:1). Per the design system's own
-   rule — glass whenever content overlays the background image — the copy
-   sits on a glass panel in ink instead. */
+/* The spec set the hero copy in white directly on the photograph, which fails
+   WCAG AA contrast (measured 1.6–2.6:1). Rather than a glass panel, the copy
+   sits in dark ink lifted by a soft vignette of light pooled beneath it —
+   reading as the photograph's own lighting, not a panel. It brightens the
+   backdrop where the text sits and dissolves outward; a small patch of the
+   longest lines may dip below AA where they run past the pool, an accepted
+   trade for the panel-free look. Dark theme drops the vignette (rule below)
+   and floats light ink over the dimmed backdrop instead. */
 .hero__copy {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* Sit near the top of the column rather than centred in it; --block-top drops
+     the copy to the shared top line it holds with the enlarged card. */
+  align-self: start;
+  margin-top: var(--block-top);
   padding: 32px;
-  background: var(--surface-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
-  backdrop-filter: var(--blur-glass);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-soft);
-  /* Ease the glass panel out (and the copy's slide left) when switching to dark. */
+  background: radial-gradient(130% 105% at 28% 46%,
+              rgba(246, 251, 253, 0.82) 0%,
+              rgba(246, 251, 253, 0.45) 45%,
+              rgba(246, 251, 253, 0) 72%);
+  /* Cross-fade the vignette out and slide the copy left when switching to dark. */
   transition: background var(--duration-slow) var(--ease-soft),
-              border-color var(--duration-slow) var(--ease-soft),
-              box-shadow var(--duration-slow) var(--ease-soft),
               padding var(--duration-slow) var(--ease-soft);
 }
 
@@ -313,32 +320,19 @@ body {
   margin: 0;
 }
 
-/* Vertical data-glyph column, left page edge */
-.hero__glyphs {
-  position: absolute;
-  left: 8px;
-  top: 140px;
-  writing-mode: vertical-rl;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.55);
-  pointer-events: none;
-  user-select: none;
-}
-
 /* ------------------------------------------------------------------ */
 /* Project wheel                                                       */
 /* ------------------------------------------------------------------ */
 .wheel {
   position: relative;
   min-width: 0;
-  /* Pin the column to the viewport minus the hero's 32+48px vertical padding, so
-     the whole thing fits one screen with no scroll. It's a flex column: the
-     stage + controls hold their (scale-driven) size and the preview flexes to
-     fill the rest. dvh matches .hero above; vh is the fallback. */
-  height: calc(100vh - 80px);
-  height: calc(100dvh - 80px);
+  /* Fill one screen (viewport minus the hero's 32+48px padding) when it fits, but
+     grow past it — letting the page scroll — when content is taller. The enlarged
+     card is a fixed full-content 16:9 card that never shrinks, so it's the floor;
+     the adaptive wheel below shrinks first to make room, and only once it bottoms
+     out at its min scale does the page scroll. dvh matches .hero; vh is fallback. */
+  min-height: calc(100vh - 80px);
+  min-height: calc(100dvh - 80px);
   display: flex;
   flex-direction: column;
 }
@@ -349,11 +343,14 @@ body {
    would otherwise clip it. */
 .wheel__preview {
   flex: 1 1 auto;           /* take all space above the stage → pushes wheel down */
-  min-height: 0;
+  /* No min-height:0 — the card is a fixed full-content element now, so the preview
+     must not shrink below it (that would clip the card). It only grows past the
+     card's height on tall screens. */
+  margin-top: var(--block-top);  /* start the card at the shared top line with the GEN X copy */
   display: flex;
-  flex-direction: column;   /* fill the card height via flex — Safari-safe, unlike height:100% */
+  flex-direction: column;
   align-items: center;
-  justify-content: flex-end;/* card sits at the bottom, next to the wheel */
+  justify-content: flex-start;/* card sits at the top, aligned with the GEN X block */
   padding-bottom: 8px;
   z-index: 3;               /* above the stage faces where they meet */
   pointer-events: none;     /* never blocks dragging/clicking the wheel */
@@ -366,8 +363,11 @@ body {
    card invisible in Safari. */
 .wheel__preview .card {
   width: min(100%, 460px);
-  flex: 1 1 auto;
-  min-height: 0;
+  /* Size to content and never grow/shrink: the 16:9 shot + full body set a fixed
+     height so the blurb and CTA are always visible (height:auto overrides the base
+     card's fixed 262px). The wheel/page absorbs any size mismatch, not the card. */
+  flex: 0 0 auto;
+  height: auto;
   transform-origin: bottom center;
   transition: transform var(--duration-slow) var(--ease-soft),
               opacity   var(--duration-slow) var(--ease-soft);
@@ -379,8 +379,9 @@ body {
   opacity: 0;
 }
 
-/* Enlarge the reused card sub-elements; let the screenshot grow to fill height. */
-.wheel__preview .card__shot  { height: auto; flex: 1 1 auto; min-height: 90px; }
+/* Enlarge the reused card sub-elements. The screenshot is a fixed 16:9 frame
+   (height follows the card width), not a flexible filler. */
+.wheel__preview .card__shot  { aspect-ratio: 16 / 9; height: auto; flex: 0 0 auto; min-height: 0; }
 .wheel__preview .card__body  { padding: 16px 24px 18px; gap: 10px; }
 .wheel__preview .card__meta  { font-size: 12px; }
 .wheel__preview .card__title { font-size: clamp(20px, 2.2vw, 26px); }
@@ -792,16 +793,15 @@ body {
     min-height: 0;
     gap: 32px;
     padding-top: 48px;
+    --block-top: 0;   /* stacked: no shared top line, drop the desktop offset */
   }
 
   .hero__title { font-size: 44px; }
 
-  .hero__glyphs { display: none; }
-
-  /* TODO: refine phone layout. Drop the fixed-viewport column height and give the
-     preview a placeholder height so it doesn't collapse once the hero stacks. */
-  .wheel { height: auto; }
-  .wheel__preview { flex: none; height: 300px; }
+  /* Stacked: drop the one-screen column height; the card is a fixed-height 16:9
+     element now, so the preview sizes to it naturally (no placeholder height). */
+  .wheel { min-height: 0; }
+  .wheel__preview { flex: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
