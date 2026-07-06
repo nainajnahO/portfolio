@@ -7,30 +7,48 @@
   <meta name="description" content="I make quiet tools for loud problems. A one-page coding portfolio.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%231c3fc4'/%3E%3Ccircle cx='8' cy='8' r='3.5' fill='%23e8f1f5'/%3E%3C/svg%3E">
   <script>
-    // Set the theme before first paint to avoid a flash of the wrong theme. A
-    // manual choice (localStorage) wins; otherwise follow the OS. Mirrors main.js.
+    // Set theme + CRT state before first paint to avoid a flash of the wrong one.
+    // A manual choice (localStorage) wins; theme otherwise follows the OS, CRT
+    // defaults on. Mirrors main.js.
     (() => {
       const stored = localStorage.getItem('theme');
       const dark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      document.documentElement.dataset.crt = localStorage.getItem('crt') === 'off' ? 'off' : 'on';
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body>
 
-  <!-- Light/dark theme control: two Aqua-gel radio buttons, fixed top-right -->
-  <div class="theme-toggle" role="radiogroup" aria-label="Colour theme">
-    <label class="theme-radio">
-      <input type="radio" name="theme" value="light" class="js-theme-radio">
-      <span class="theme-radio__dot" aria-hidden="true"></span>
-      <span class="theme-radio__text">Light</span>
-    </label>
-    <label class="theme-radio">
-      <input type="radio" name="theme" value="dark" class="js-theme-radio">
-      <span class="theme-radio__dot" aria-hidden="true"></span>
-      <span class="theme-radio__text">Dark</span>
-    </label>
+  <!-- Fixed top-right control stack: colour theme, then CRT power. -->
+  <div class="controls">
+
+    <!-- Light/dark theme control: two Aqua-gel radio buttons -->
+    <div class="theme-toggle" role="radiogroup" aria-label="Colour theme">
+      <label class="theme-radio">
+        <input type="radio" name="theme" value="light" class="js-theme-radio">
+        <span class="theme-radio__dot" aria-hidden="true"></span>
+        <span class="theme-radio__text">Light</span>
+      </label>
+      <label class="theme-radio">
+        <input type="radio" name="theme" value="dark" class="js-theme-radio">
+        <span class="theme-radio__dot" aria-hidden="true"></span>
+        <span class="theme-radio__text">Dark</span>
+      </label>
+    </div>
+
+    <!-- CRT power. A single native checkbox reusing the theme control's Aqua-gel
+         styling (.theme-radio*): its gel dot lights blue when the phosphors are on.
+         The wrapping <label>'s text ("CRT") is the checkbox's accessible name. -->
+    <div class="crt-toggle">
+      <label class="theme-radio">
+        <input type="checkbox" class="js-crt-toggle">
+        <span class="theme-radio__dot" aria-hidden="true"></span>
+        <span class="theme-radio__text">CRT</span>
+      </label>
+    </div>
+
   </div>
 
   <!-- Backdrop artwork -->
@@ -94,6 +112,6 @@
   <div class="crt-glass"   aria-hidden="true"></div>
   <div class="crt-flicker" aria-hidden="true"></div>
 
-  <script src="main.js?v=7" defer></script>
+  <script src="main.js?v=8" defer></script>
 </body>
 </html>

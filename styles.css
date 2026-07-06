@@ -166,12 +166,12 @@
 
   /* CRT simulation knobs (consumed by the .crt-* layers at the end of the file).
      Tuning these is how you dial the whole look without touching the rules. */
-  --crt-pitch: 2px;          /* width of one R→G→B phosphor triad; bigger = chunkier "pixels" */
-  --crt-scan: 2px;           /* period of the horizontal scanlines */
-  --crt-scan-depth: 0.08;    /* darkness of each scanline (0 = none, 1 = black) */
-  --crt-phosphor-soft: 60%;  /* white mixed into each stripe; higher = brighter & softer, lower = punchier & darker */
-  --crt-vignette: 0.4;       /* strength of the tube edge-darkening */
-  --crt-glare: 0.06;         /* strength of the faint glass reflection */
+  --crt-pitch: 3px;          /* width of one R→G→B phosphor triad; bigger = chunkier "pixels" */
+  --crt-scan: 4px;           /* period of the horizontal scanlines */
+  --crt-scan-depth: 0.07;    /* darkness of each scanline (0 = none, 1 = black) */
+  --crt-phosphor-soft: 65%;  /* white mixed into each stripe; higher = brighter & softer, lower = punchier & darker */
+  --crt-vignette: 0.1;       /* strength of the tube edge-darkening */
+  --crt-glare: 0.1;          /* strength of the faint glass reflection */
 }
 
 /* ------------------------------------------------------------------ */
@@ -584,16 +584,24 @@ body {
 :root[data-theme="dark"] .hero__motif { color: rgba(244, 248, 251, 0.85); }
 
 /* ------------------------------------------------------------------ */
-/* Theme control — two Aqua-gel radio buttons. Period-correct for the     */
-/* early-2000s "soft club" look (the flat slider toggle is a 2007+ idiom).*/
-/* Native <input type="radio"> skinned glossy; fixed top-right, outside    */
-/* the hero grid so it can't affect the no-scroll layout.                  */
+/* Top-right controls — Aqua-gel toggles, period-correct for the early-   */
+/* 2000s "soft club" look (a flat slider toggle is a 2007+ idiom). Native  */
+/* <input> skinned glossy. Fixed outside the hero grid so they can't       */
+/* affect the no-scroll layout; stacked so CRT power sits under the theme. */
 /* ------------------------------------------------------------------ */
-.theme-toggle {
+.controls {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+/* Both control rows are the same glass pill. */
+.theme-toggle,
+.crt-toggle {
   display: inline-flex;
   align-items: center;
   gap: 16px;
@@ -667,8 +675,9 @@ body {
   outline-offset: 2px;
 }
 
-/* Keep the control legible over the dimmed backdrop in dark mode. */
-:root[data-theme="dark"] .theme-toggle {
+/* Keep the controls legible over the dimmed backdrop in dark mode. */
+:root[data-theme="dark"] .theme-toggle,
+:root[data-theme="dark"] .crt-toggle {
   background: rgba(20, 32, 56, 0.55);
   border-color: rgba(255, 255, 255, 0.18);
 }
@@ -696,6 +705,14 @@ body {
   position: fixed;
   inset: 0;
   pointer-events: none;
+}
+
+/* CRT power switch (the .crt-toggle checkbox sets data-crt on <html>; default
+   is "on"). Off = drop all three layers so the page renders flat. */
+:root[data-crt="off"] .crt-grille,
+:root[data-crt="off"] .crt-glass,
+:root[data-crt="off"] .crt-flicker {
+  display: none;
 }
 
 /* The phosphors. Two background layers multiplied together (vertical RGB

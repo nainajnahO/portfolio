@@ -251,3 +251,21 @@ themeRadios.forEach((radio) => {
 });
 
 syncThemeControl();
+
+// CRT power: a native checkbox toggles the phosphor overlay. Same shape as the
+// theme control — the initial state is applied pre-paint by the head script
+// (data-crt on <html>, localStorage key 'crt', default on); here we sync the
+// checkbox to it and persist changes.
+const crtToggle = document.querySelector('.js-crt-toggle');
+
+function syncCrtControl() {
+  crtToggle.checked = document.documentElement.dataset.crt !== 'off';
+}
+
+crtToggle.addEventListener('change', () => {
+  const state = crtToggle.checked ? 'on' : 'off';
+  document.documentElement.dataset.crt = state;
+  localStorage.setItem('crt', state);
+});
+
+syncCrtControl();
