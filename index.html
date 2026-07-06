@@ -15,7 +15,7 @@
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
 
@@ -80,6 +80,19 @@
       </div>
     </a>
   </template>
+
+  <!-- CRT screen simulation (see styles.css). Three full-viewport layers that
+       MODULATE the content beneath them rather than sitting on top. Each MUST be
+       a direct child of <body>: a wrapping positioned container would form its
+       own stacking context and the grille's mix-blend-mode would then blend
+       against an empty backdrop instead of the page. Decorative + never blocks
+       input, so all three are aria-hidden and pointer-events:none.
+         · grille  — RGB phosphor stripes × scanlines, multiplied into the pixels
+         · glass   — tube vignette + faint glare, composited over the top
+         · flicker — a barely-there brightness pulse (paused for reduced motion) -->
+  <div class="crt-grille"  aria-hidden="true"></div>
+  <div class="crt-glass"   aria-hidden="true"></div>
+  <div class="crt-flicker" aria-hidden="true"></div>
 
   <script src="main.js?v=7" defer></script>
 </body>

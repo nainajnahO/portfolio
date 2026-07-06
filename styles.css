@@ -163,6 +163,15 @@
   --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   --duration-fast: 160ms;
   --duration-slow: 420ms;
+
+  /* CRT simulation knobs (consumed by the .crt-* layers at the end of the file).
+     Tuning these is how you dial the whole look without touching the rules. */
+  --crt-pitch: 2px;          /* width of one R→G→B phosphor triad; bigger = chunkier "pixels" */
+  --crt-scan: 2px;           /* period of the horizontal scanlines */
+  --crt-scan-depth: 0.08;    /* darkness of each scanline (0 = none, 1 = black) */
+  --crt-phosphor-soft: 60%;  /* white mixed into each stripe; higher = brighter & softer, lower = punchier & darker */
+  --crt-vignette: 0.4;       /* strength of the tube edge-darkening */
+  --crt-glare: 0.06;         /* strength of the faint glass reflection */
 }
 
 /* ------------------------------------------------------------------ */
@@ -665,6 +674,83 @@ body {
 }
 :root[data-theme="dark"] .theme-radio__text { color: rgba(244, 248, 251, 0.9); }
 
+/* ------------------------------------------------------------------ */
+/* CRT screen simulation                                                */
+/*                                                                      */
+/* Not a sticker over the page: the grille layer is composited with     */
+/* mix-blend-mode:multiply, so it MODULATES the real content's pixels.  */
+/* Multiplying a white glyph by an R/G/B stripe pattern turns that glyph */
+/* into red/green/blue phosphor stripes — the same way a shadow-mask     */
+/* tube builds an image from sub-pixel phosphors — so you genuinely      */
+/* "see the pixels" while the underlying DOM stays crisp, selectable and */
+/* accessible. Pure CSS: no rasterization, no WebGL, no build step. The  */
+/* backdrop-filter glass and the 3D transform wheel are left untouched.  */
+/*                                                                       */
+/* Each layer is fixed + pointer-events:none and a direct child of body  */
+/* (a positioned wrapper would isolate the grille from the page it needs */
+/* to blend with). Layer order: grille → glass → flicker.                */
+/* ------------------------------------------------------------------ */
+.crt-grille,
+.crt-glass,
+.crt-flicker {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The phosphors. Two background layers multiplied together (vertical RGB
+   stripes × horizontal scanlines) give a shadow-mask grid; that grid is then
+   multiplied over the page, chopping its pixels into phosphors + raster lines.
+   color-mix lets one knob (--crt-phosphor-soft) trade punch for brightness by
+   lightening each stripe toward white. */
+.crt-grille {
+  z-index: 100;
+  mix-blend-mode: multiply;
+  background-image:
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, #ff0000, #fff var(--crt-phosphor-soft)) 0,
+      color-mix(in srgb, #ff0000, #fff var(--crt-phosphor-soft)) calc(var(--crt-pitch) / 3),
+      color-mix(in srgb, #00ff00, #fff var(--crt-phosphor-soft)) calc(var(--crt-pitch) / 3),
+      color-mix(in srgb, #00ff00, #fff var(--crt-phosphor-soft)) calc(2 * var(--crt-pitch) / 3),
+      color-mix(in srgb, #0000ff, #fff var(--crt-phosphor-soft)) calc(2 * var(--crt-pitch) / 3),
+      color-mix(in srgb, #0000ff, #fff var(--crt-phosphor-soft)) var(--crt-pitch)),
+    repeating-linear-gradient(0deg,
+      rgba(0, 0, 0, var(--crt-scan-depth)) 0,
+      rgba(0, 0, 0, var(--crt-scan-depth)) 1px,
+      transparent 1px,
+      transparent var(--crt-scan));
+  background-blend-mode: multiply;
+}
+
+/* The tube glass. A dark radial vignette (curved-edge falloff) with a faint
+   off-centre glare on top, composited normally over the phosphors. */
+.crt-glass {
+  z-index: 101;
+  background:
+    radial-gradient(ellipse 75% 68% at 32% 24%,
+      rgba(255, 255, 255, var(--crt-glare)), transparent 46%),
+    radial-gradient(ellipse 90% 88% at 50% 50%,
+      transparent 55%,
+      rgba(4, 8, 18, calc(var(--crt-vignette) * 0.6)) 84%,
+      rgba(4, 8, 18, var(--crt-vignette)) 100%);
+}
+
+/* Refresh flicker — a whisper-faint brightness pulse. Kept as its own layer so
+   it can be paused without disturbing the phosphors or glass. */
+.crt-flicker {
+  z-index: 102;
+  background: rgba(3, 6, 14, 0.5);
+  opacity: 0;
+  animation: crt-flicker 4.2s steps(1, end) infinite;
+}
+
+@keyframes crt-flicker {
+  0%, 96%, 100% { opacity: 0; }
+  97%           { opacity: 0.05; }
+  98%           { opacity: 0.01; }
+  99%           { opacity: 0.06; }
+}
+
 @media (max-width: 860px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
@@ -695,4 +781,19 @@ body {
   .hero__copy,
   .hero__label, .hero__title, .hero__motif, .hero__blurb,
   .theme-radio__dot { transition: none; }
+
+  /* The CRT phosphors + scanlines stay (they're static), but the flicker pulse
+     is motion — hold it off. */
+  .crt-flicker { animation: none; opacity: 0; }
+}
+
+/* Accessibility escape hatch. The grille's multiply and the tube vignette lower
+   the effective contrast this page was hand-tuned to pass AA at (worst at the
+   vignette edges — e.g. the bottom mono chips and the accent link drop below
+   4.5:1). Users who ask their OS for maximum contrast or reduced transparency
+   are telling us legibility beats the effect, so remove it for them entirely. */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  .crt-grille,
+  .crt-glass,
+  .crt-flicker { display: none; }
 }
