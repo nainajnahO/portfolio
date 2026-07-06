@@ -1,476 +1,331 @@
-/* Gen X Soft Club — portfolio v2.
-   Tokens come verbatim from the "gen-x-soft-club" design system on
-   claude.ai/design; the page styles port PortfolioSite.dc.html. */
-
-/* ------------------------------------------------------------------ */
-/* Fonts — self-hosted latin subsets of the DS's Google Fonts          */
-/* substitutions (Audiowide / Michroma / Share Tech Mono / Exo 2).     */
-/* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ *
+ * Self-hosted fonts (latin subset). Relative paths so the site works
+ * from a GitHub Pages project sub-path (…/portfolio/) as well as root.
+ * ------------------------------------------------------------------ */
 @font-face {
-  font-family: 'Audiowide';
+  font-family: 'Young Serif';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('fonts/audiowide-400.woff2') format('woff2');
+  src: url('fonts/young-serif-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Variable font — one file serves both weights the site uses. */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('fonts/jetbrains-mono-400-500.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Michroma';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('fonts/michroma-400.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Share Tech Mono';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('fonts/share-tech-mono-400.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Exo 2';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('fonts/exo-2-400.woff2') format('woff2');
+  src: url('fonts/inter-400.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* ------------------------------------------------------------------ */
-/* Tokens: colors (sampled from the Gen X Soft Club artwork)           */
-/* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ *
+ * Design tokens (from the source design)
+ * ------------------------------------------------------------------ */
 :root {
-  /* Base scale — washed atmospheric blues, light → dark */
-  --haze-0: #f6fbfd;      /* near-white haze */
-  --haze-1: #e8f1f5;      /* pale fog */
-  --mist: #cfe0ea;        /* cool mist */
-  --powder: #a8d5da;      /* cyan haze */
-  --periwinkle: #b2bfea;  /* soft lavender-blue (logotype) */
-  --sky: #8ab4d8;         /* train-window blue */
-  --steel: #6994b3;       /* label blue */
-  --slate: #538ba8;       /* mid structure blue */
-  --ink-soft: #374b68;    /* soft navy */
-  --ink: #22344e;         /* text navy */
-  --electric: #1c3fc4;    /* electric accent blue */
-  --electric-deep: #102a97; /* deep signal blue */
-  --mint: #65a76f;        /* platform green */
-  --mint-soft: #a9d3ae;   /* washed mint */
-  --white: #ffffff;
+  --bg:          #f0eee9;
+  --card:        #ffffff;
+  --ink:         #2b2822;
+  --muted:       #5c574b;
+  --faint:       #797569;
+  --shot-ink:    #6b6558;
+  --arrow-idle:  #c5bfaf;
+  --card-border: rgba(0, 0, 0, .08);
+  --line:        rgba(0, 0, 0, .09);
+  --line-strong: rgba(0, 0, 0, .10);
 
-  /* Semantic aliases */
-  --page-bg: var(--haze-1);
-  --text-body: var(--ink);
-  --text-soft: var(--ink-soft);
-  --text-label: var(--steel);
-  --text-on-image: var(--white);
-  --text-accent: var(--electric);
+  --serif: 'Young Serif', Georgia, 'Times New Roman', serif;
+  --mono:  'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --sans:  'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  --surface-glass: rgba(255, 255, 255, 0.55);
-  --surface-glass-strong: rgba(255, 255, 255, 0.78);
-  --surface-tint: rgba(168, 213, 218, 0.35);
-  --surface-deep: rgba(16, 42, 90, 0.82);
-
-  --border-hairline: rgba(83, 139, 168, 0.35);
-  --border-glass: rgba(255, 255, 255, 0.65);
-  --border-accent: var(--electric);
-
-  --accent: var(--electric);
-  --accent-hover: var(--electric-deep);
-  --positive: var(--mint);
-  --focus-ring: rgba(28, 63, 196, 0.45);
+  /* Set per active project by main.js; safe defaults for the no-JS view. */
+  --accent: var(--ink);
+  --wash:   transparent;
 }
 
-/* ------------------------------------------------------------------ */
-/* Tokens: typography                                                  */
-/* ------------------------------------------------------------------ */
-:root {
-  --font-display: 'Audiowide', 'Exo 2', sans-serif;       /* logotype / hero */
-  --font-tech: 'Michroma', 'Exo 2', sans-serif;           /* wide tech headings, labels */
-  --font-mono: 'Share Tech Mono', monospace;              /* data glyphs, meta, code */
-  --font-body: 'Exo 2', 'Segoe UI', sans-serif;           /* paragraphs, UI */
-
-  /* Scale */
-  --text-hero: 64px;
-  --text-h1: 40px;
-  --text-h2: 26px;
-  --text-h3: 18px;
-  --text-body-size: 16px;
-  --text-small: 14px;
-  --text-micro: 11px;
-
-  /* Tracking — wide letterspacing is a core motif */
-  --track-hero: 0.22em;
-  --track-heading: 0.14em;
-  --track-label: 0.28em;
-  --track-body: 0.01em;
-
-  --leading-tight: 1.15;
-  --leading-body: 1.65;
-}
-
-/* ------------------------------------------------------------------ */
-/* Tokens: spacing & layout                                            */
-/* ------------------------------------------------------------------ */
-:root {
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --space-8: 64px;
-  --space-9: 96px;
-
-  --content-max: 1120px;
-  --gutter: 24px;
-}
-
-/* ------------------------------------------------------------------ */
-/* Tokens: effects — glass, scanlines, radii, shadows, motion          */
-/* ------------------------------------------------------------------ */
-:root {
-  --radius-sm: 3px;
-  --radius-md: 10px;
-  --radius-pill: 999px;
-
-  --blur-glass: blur(14px) saturate(1.2);
-  --blur-glass-light: blur(8px) saturate(1.1);
-
-  --shadow-soft: 0 8px 32px rgba(55, 75, 104, 0.14);
-  --shadow-panel: 0 2px 12px rgba(55, 75, 104, 0.10);
-  --shadow-glow: 0 0 24px rgba(28, 63, 196, 0.25);
-
-  /* Horizontal scanline texture — overlay on glass panels & imagery */
-  --texture-scanlines: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.00) 0px,
-    rgba(255, 255, 255, 0.00) 2px,
-    rgba(83, 139, 168, 0.07) 3px,
-    rgba(83, 139, 168, 0.07) 4px
-  );
-
-  /* Hairline crosshair frame color (thin white rules over imagery) */
-  --rule-on-image: rgba(255, 255, 255, 0.75);
-
-  /* Canonical page backdrop. The design canvas used a station-blur.jpeg
-     variant that couldn't be exported whole (API size cap) — this is the
-     design system's canonical artwork; swap the URL if the original photo
-     turns up. */
-  --image-backdrop: url('assets/backgrounds/gen-x-soft-club.webp');
-
-  --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --duration-fast: 160ms;
-  --duration-slow: 420ms;
-}
-
-/* ------------------------------------------------------------------ */
-/* Base                                                                */
-/* ------------------------------------------------------------------ */
-html { scroll-behavior: smooth; }
+*,
+*::before,
+*::after { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: var(--page-bg);
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--ink);
+  overflow-x: hidden; /* never scroll sideways */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-:focus-visible {
-  outline: 2px solid var(--electric);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 5px var(--focus-ring);
-}
-
-/* Backdrop artwork — fixed full-bleed behind everything */
-.backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: var(--page-bg) var(--image-backdrop) center / cover no-repeat;
-}
-
+/* ------------------------------------------------------------------ *
+ * Page shell — centres the card on the warm background
+ * ------------------------------------------------------------------ */
 .page {
-  max-width: var(--content-max);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
-}
-
-/* ------------------------------------------------------------------ */
-/* Hero                                                                */
-/* ------------------------------------------------------------------ */
-.hero {
-  min-height: max(420px, 73vh);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-  gap: 48px;
-  align-items: center;
-  padding: 32px 0 48px;
-  position: relative;
-}
-
-/* The spec set the hero copy in white directly on the photograph, which
-   fails WCAG AA contrast (measured 1.6–2.6:1). Per the design system's own
-   rule — glass whenever content overlays the background image — the copy
-   sits on a glass panel in ink instead. */
-.hero__copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 32px;
-  background: var(--surface-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
-  backdrop-filter: var(--blur-glass);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-soft);
-}
-
-.hero__label {
-  font-family: var(--font-tech);
-  font-size: 12px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--text-soft);
-  margin-bottom: 18px;
-}
-
-.hero__title {
-  font-family: var(--font-display);
-  font-size: 64px;
-  letter-spacing: var(--track-hero);
-  text-transform: uppercase;
-  color: var(--text-body);
-  margin: 0;
-  line-height: 1.15;
-}
-
-/* The skewed "Contemporary Soft Club" motif */
-.hero__motif {
-  font-family: var(--font-tech);
-  font-size: 16px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--text-soft);
-  transform: skewX(-12deg);
-  transform-origin: left;
-  margin: 20px 0 10px;
-}
-
-.hero__blurb {
-  font-family: var(--font-body);
-  font-size: 17px;
-  line-height: 1.65;
-  color: var(--text-body);
-  max-width: 440px;
-  margin: 0;
-}
-
-/* Vertical data-glyph column, left page edge */
-.hero__glyphs {
-  position: absolute;
-  left: 8px;
-  top: 140px;
-  writing-mode: vertical-rl;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.55);
-  pointer-events: none;
-  user-select: none;
-}
-
-/* ------------------------------------------------------------------ */
-/* Project wheel                                                       */
-/* ------------------------------------------------------------------ */
-.wheel {
-  position: relative;
-  min-width: 0;
-}
-
-.wheel__stage {
-  position: relative;
-  height: 320px;
-  perspective: 1400px;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);
-  touch-action: pan-y;
-  cursor: grab;
-  user-select: none;
-}
-
-.wheel__stage.is-dragging { cursor: grabbing; }
-
-.wheel__ring {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transform: translateZ(-520px);
-}
-
-/* Front-card registration frame */
-.wheel__frame {
-  position: absolute;
-  left: 50%;
-  top: 4px;
-  bottom: 4px;
-  width: 274px;
-  transform: translateX(-50%);
-  border-left: 1px solid rgba(255, 255, 255, 0.55);
-  border-right: 1px solid rgba(255, 255, 255, 0.55);
-  pointer-events: none;
-}
-
-/* One face of the wheel — transform/opacity/z-index set by main.js */
-.face {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 250px;
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-.wheel__controls {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.wheel__btn {
-  width: 34px;
-  height: 34px;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  border-radius: var(--radius-pill);
-  background: var(--surface-glass);
-  border: 1px solid var(--border-hairline);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--text-body);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-soft);
+  padding: clamp(16px, 4vw, 56px);
 }
 
-.wheel__btn:hover { background: var(--surface-glass-strong); }
-
-/* The spec's translucent white here tops out below 2:1 contrast on the
-   photo; ink-on-glass chips match the buttons and pass AA. */
-.wheel__meta,
-.wheel__counter {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: var(--text-body);
-  background: var(--surface-glass-strong);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-pill);
-  padding: 4px 12px;
-}
-
-.wheel__rule {
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.35);
-}
-
-/* ------------------------------------------------------------------ */
-/* Project card (inside a face)                                        */
-/* ------------------------------------------------------------------ */
 .card {
-  display: flex;
-  flex-direction: column;
-  height: 262px;
-  background: var(--surface-glass-strong);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-panel);
+  width: 100%;
+  max-width: 1040px;
+  min-width: 0; /* allow the flex child to stay within the viewport */
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 12px 40px rgba(0, 0, 0, .05);
   overflow: hidden;
 }
 
-.card__shot {
+/* The tinting layer. */
+.wash {
+  display: flex;
+  background: var(--wash);
+  transition: background .35s ease;
+}
+
+/* ------------------------------------------------------------------ *
+ * Left column — the list
+ * ------------------------------------------------------------------ */
+.list-col {
+  flex: 1.5 1 0;
+  min-width: 0;
+  padding: clamp(24px, 3vw, 40px) 0 clamp(22px, 2.6vw, 34px) clamp(22px, 3.2vw, 44px);
+  border-right: 1px solid var(--line-strong);
+}
+
+.list-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 clamp(18px, 2vw, 28px) clamp(14px, 1.8vw, 22px) 0;
+}
+
+.list-head__title {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.list-head__years {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  /* reset the button */
+  width: 100%;
+  margin: 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: clamp(8px, 1vw, 11px) clamp(18px, 2vw, 24px) clamp(8px, 1vw, 11px) 0;
+}
+
+.row__name {
+  min-width: 0;
+  font-family: var(--serif);
+  font-size: clamp(25px, 2.7vw, 33px);
+  line-height: 1.05;
+  letter-spacing: -.015em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  transition: color .2s ease;
+}
+
+.row__type {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.row__arrow {
+  margin-left: auto;
+  align-self: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--arrow-idle);
+  transition: color .2s ease;
+}
+
+/* Active / hovered / focused row picks up the project accent. */
+.row.is-active .row__name,
+.row.is-active .row__arrow { color: var(--accent); }
+
+.row:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+  border-radius: 3px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Right column — the quick-look panel
+ * ------------------------------------------------------------------ */
+.panel {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: clamp(24px, 3vw, 40px) clamp(22px, 2.6vw, 36px) clamp(22px, 2.6vw, 34px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel__shot {
   position: relative;
-  height: 104px;
-  background: var(--mist);
+  height: clamp(150px, 20vw, 190px);
+  border-radius: 5px;
+  background: repeating-linear-gradient(-45deg,
+      rgba(0, 0, 0, .05) 0 10px,
+      rgba(0, 0, 0, .09) 10px 20px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--steel);
+  overflow: hidden;
 }
 
-.card__scanlines {
+/* Real screenshot when a project has one; the striped box shows otherwise.
+   The image is shown whole (contain) so nothing is cropped, over an ambient
+   blurred zoom of the same image (::before) that fills the leftover space —
+   no letterbox bars, no per-project height change. --shot-img is set by main.js
+   (and inline on the default box, so it also works without JavaScript). */
+.panel__shot-img {
   position: absolute;
   inset: 0;
-  background: var(--texture-scanlines);
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: none;
+  z-index: 1;
 }
-
-.card__body {
-  padding: 16px 18px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
+.panel__shot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--shot-img);
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.2); /* overscan so the blur never bares a hard edge */
+  filter: blur(24px) saturate(1.15) brightness(.92);
+  display: none;
 }
+.panel__shot.has-img::before { display: block; }
+.panel__shot.has-img .panel__shot-img { display: block; }
+.panel__shot.has-img .panel__shot-label { display: none; }
 
-.card__meta {
-  font-family: var(--font-mono);
+.panel__shot-label {
+  font-family: var(--mono);
   font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--text-label);
+  color: var(--shot-ink);
 }
 
-.card__title {
-  font-family: var(--font-tech);
-  font-size: 15px;
-  letter-spacing: var(--track-heading);
-  text-transform: uppercase;
-  color: var(--text-body);
+.panel__name {
   margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(24px, 2.4vw, 31px);
+  line-height: 1.05;
+  letter-spacing: -.01em;
+  color: var(--ink);
 }
 
-.card__blurb {
-  font-family: var(--font-body);
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--text-soft);
+.panel__meta {
   margin: 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-.card__cta {
-  font-family: var(--font-tech);
-  font-size: 10px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--text-accent);
+.panel__desc {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.panel__cta {
   margin-top: auto;
+  padding-top: 8px;
+  align-self: flex-start;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-/* ------------------------------------------------------------------ */
-/* Small screens — stack the hero, hide edge decoration                */
-/* ------------------------------------------------------------------ */
-@media (max-width: 860px) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
-    gap: 32px;
-    padding-top: 48px;
+.panel__cta:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive — stack the columns on narrow screens
+ * ------------------------------------------------------------------ */
+@media (max-width: 720px) {
+  /* Stack with the quick-look panel on top, the list below. */
+  .wash { flex-direction: column-reverse; }
+
+  .list-col {
+    flex: none;
+    border-right: 0;
+    border-top: 1px solid var(--line-strong);
+    padding: clamp(22px, 6vw, 30px) 0 clamp(14px, 4vw, 22px) clamp(20px, 6vw, 28px);
   }
 
-  .hero__title { font-size: 44px; }
+  .panel {
+    flex: none;
+    padding: clamp(22px, 6vw, 30px) clamp(20px, 6vw, 28px) clamp(24px, 7vw, 32px);
+  }
 
-  .hero__glyphs { display: none; }
+  /* Taller screenshot placeholder once the columns are stacked. */
+  .panel__shot { height: clamp(160px, 42vw, 200px); }
 }
 
+/* ------------------------------------------------------------------ *
+ * Respect users who prefer less motion
+ * ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  .wash,
+  .row__name,
+  .row__arrow { transition: none; }
 }

@@ -1,5 +1,5 @@
 # Portfolio
 
-A single-page portfolio in the Gen X Soft Club aesthetic — washed blues over blurred transit artwork, with a draggable 3D project wheel.
+A single-page portfolio — a big-type, colour-wash list of works with a quick-look panel.
 
 <https://nainajnaho.github.io/portfolio/>
