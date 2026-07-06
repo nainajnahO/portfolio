@@ -127,6 +127,13 @@
 
   --content-max: 1120px;
   --gutter: 24px;
+
+  /* Uniform shrink factor for the 3D wheel so it fits shorter laptops without
+     clipping the enlarged card above it. Every wheel dimension is expressed as
+     `base * var(--wheel-scale)`. Default 1 (full size, fail-safe); main.js
+     lowers it on short viewports and keeps the JS RADIUS in lockstep with the
+     ring depth below, so the 3D front-card registration stays exact. */
+  --wheel-scale: 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -221,8 +228,12 @@ body {
 /* ------------------------------------------------------------------ */
 .hero {
   /* Fit the hero to one screen so the enlarged preview + wheel never scroll on
-     a laptop; box-sizing folds the vertical padding into the 100vh. */
+     a laptop; box-sizing folds the vertical padding into the viewport height.
+     dvh (dynamic viewport height) tracks the *visible* area — unlike vh, it
+     excludes browser UI / scrollbars, which is what caused the phantom scroll on
+     laptops. vh stays as a fallback for engines without dvh. */
   min-height: 100vh;
+  min-height: 100dvh;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
@@ -323,9 +334,11 @@ body {
   position: relative;
   min-width: 0;
   /* Pin the column to the viewport minus the hero's 32+48px vertical padding, so
-     the whole thing fits one screen with no scroll. It's a flex column: the fixed
-     stage + controls hold their size and the preview flexes to fill the rest. */
+     the whole thing fits one screen with no scroll. It's a flex column: the
+     stage + controls hold their (scale-driven) size and the preview flexes to
+     fill the rest. dvh matches .hero above; vh is the fallback. */
   height: calc(100vh - 80px);
+  height: calc(100dvh - 80px);
   display: flex;
   flex-direction: column;
 }
@@ -376,9 +389,9 @@ body {
 
 .wheel__stage {
   position: relative;
-  height: 320px;
-  flex-shrink: 0;          /* keep the wheel its fixed size; the preview absorbs the slack */
-  perspective: 1400px;
+  height: calc(320px * var(--wheel-scale));
+  flex-shrink: 0;          /* hold the (scaled) size; the preview absorbs the slack */
+  perspective: calc(1400px * var(--wheel-scale));
   overflow: hidden;
   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);
   mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);
@@ -393,7 +406,7 @@ body {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: translateZ(-520px);
+  transform: translateZ(calc(-520px * var(--wheel-scale)));
 }
 
 /* Front-card registration frame */
@@ -402,7 +415,7 @@ body {
   left: 50%;
   top: 4px;
   bottom: 4px;
-  width: 274px;
+  width: calc(274px * var(--wheel-scale));
   transform: translateX(-50%);
   border-left: 1px solid rgba(255, 255, 255, 0.55);
   border-right: 1px solid rgba(255, 255, 255, 0.55);
@@ -414,7 +427,7 @@ body {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 250px;
+  width: calc(250px * var(--wheel-scale));
   display: block;
   text-decoration: none;
   color: inherit;
@@ -425,6 +438,11 @@ body {
    .card clone with no .face ancestor, so it keeps them). */
 .face .card__blurb,
 .face .card__cta { display: none; }
+
+/* Scale the face card's height with the wheel (its width scales via .face). The
+   shared `.card { height: 262px }` stays the base for the enlarged preview clone,
+   which is NOT scaled — it fills whatever room the shrunk wheel frees up. */
+.face .card { height: calc(262px * var(--wheel-scale)); }
 
 /* With the text trimmed, let the screenshot grow to fill the freed space so the
    face reads as an image-forward thumbnail with the meta + title as a caption. */

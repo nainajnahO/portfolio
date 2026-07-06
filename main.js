@@ -8,11 +8,16 @@ const projects = [
   { meta: 'PROJ.03 / 2024 / TS', title: 'Last Train', blurb: 'Transit departure boards for cities you have never lived in.', url: '#' },
 ];
 
-// The wheel is a 12-sided cylinder: faces every 30°, radius 520px, the
-// three projects repeating around it so a card is always approaching.
+// The wheel is a 12-sided cylinder: faces every 30°, the three projects
+// repeating around it so a card is always approaching.
 const FACES = 12;
 const STEP = 30;
-const RADIUS = 520;
+// Design depth is 520px; the wheel is drawn at a uniform --wheel-scale so it
+// fits shorter laptops without clipping the enlarged card. RADIUS is the scaled
+// depth used per frame, kept in lockstep with the CSS ring translateZ (which is
+// `-520px * var(--wheel-scale)`) so the 3D front-card registration stays exact.
+const BASE_RADIUS = 520;
+let RADIUS = BASE_RADIUS;
 
 const stage = document.querySelector('.js-stage');
 const ring = document.querySelector('.js-ring');
@@ -228,8 +233,30 @@ document.querySelector('.js-next').addEventListener('click', () => {
   animateTo(Math.round(angle / STEP) * STEP + STEP);
 });
 
+// Shrink the whole wheel uniformly on short viewports so the enlarged preview
+// card above it never gets clipped. The scale drives both the CSS geometry
+// (--wheel-scale → stage/perspective/ring/face sizes) and the JS depth (RADIUS),
+// so the 3D registration stays exact. RESERVED is the vertical budget the wheel
+// can't use — hero padding (80) + controls (~48) + preview padding (~8) + the
+// enlarged card's own min-content (~268); whatever the viewport has left over
+// sizes the 320px base stage. Floored so the wheel never shrinks to a token.
+const WHEEL_STAGE_BASE = 320;
+const WHEEL_RESERVED = 404;
+const WHEEL_MIN_SCALE = 0.62;
+
+function applyWheelScale() {
+  const fit = (window.innerHeight - WHEEL_RESERVED) / WHEEL_STAGE_BASE;
+  const scale = Math.max(WHEEL_MIN_SCALE, Math.min(1, fit));
+  document.documentElement.style.setProperty('--wheel-scale', scale.toFixed(4));
+  RADIUS = BASE_RADIUS * scale;
+}
+
+applyWheelScale();
 render();
 settlePreview();
+
+// Re-fit on resize / rotate; render() re-lays the faces at the new depth.
+addEventListener('resize', () => { applyWheelScale(); render(); });
 
 // Theme control: two native radios select light/dark. Applying = set data-theme on
 // <html> and persist. The initial theme is set pre-paint by the head script; here we
