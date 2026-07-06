@@ -20,6 +20,12 @@ const faceTemplate = document.querySelector('.js-face-template');
 const activeMetaEl = document.querySelector('.js-active-meta');
 const counterEl = document.querySelector('.js-counter');
 
+// The enlarged preview above the wheel: a clone of just the .card (no .face
+// anchor, so it never becomes a tab stop), refilled from `projects` on settle.
+const previewEl = document.querySelector('.js-preview');
+const previewCard = faceTemplate.content.querySelector('.card').cloneNode(true);
+previewEl.append(previewCard);
+
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const faces = Array.from({ length: FACES }, (_, i) => {
@@ -44,6 +50,35 @@ let wheelTimer = null;
 // Map an angle to [-180, 180) so faces on the far side stay hidden.
 const normalize = (a) => ((a % 360) + 540) % 360 - 180;
 
+// Which project sits at the front of the wheel right now.
+function frontActiveIdx() {
+  const front = ((Math.round(angle / STEP) % FACES) + FACES) % FACES;
+  return front % projects.length;
+}
+
+function fillCard(cardEl, p) {
+  cardEl.querySelector('.card__meta').textContent = p.meta;
+  cardEl.querySelector('.card__title').textContent = p.title;
+  cardEl.querySelector('.card__blurb').textContent = p.blurb;
+}
+
+// Reveal the enlarged preview on the settled project: swap content (while it's
+// still tucked/hidden) then rise it back up. Called only when the wheel settles,
+// and every motion tucks the card first, so this is where "show" lives. Removing
+// the class can't silently no-op — the card is visible by default (fail-visible),
+// the inverse of the reflow-replay trick that broke this in Safari.
+function settlePreview() {
+  fillCard(previewCard, projects[frontActiveIdx()]);
+  previewCard.classList.remove('is-tucked');
+}
+
+// Tuck the card away the instant the wheel starts moving; it stays hidden until
+// the next settle re-reveals it. The CSS transition does the slide + fade.
+function hidePreview() {
+  if (reducedMotion) return;               // reduced motion: never hide, just swap on settle
+  previewCard.classList.add('is-tucked');  // idempotent: re-adding an existing class is a no-op
+}
+
 function render() {
   faces.forEach((el, i) => {
     const rel = normalize(i * STEP - angle);
@@ -61,8 +96,7 @@ function render() {
     el.style.visibility = hidden ? 'hidden' : 'visible';
   });
 
-  const front = ((Math.round(angle / STEP) % FACES) + FACES) % FACES;
-  const activeIdx = front % projects.length;
+  const activeIdx = frontActiveIdx();
   activeMetaEl.textContent = projects[activeIdx].meta;
   counterEl.textContent = `0${activeIdx + 1} / 0${projects.length}`;
 }
@@ -78,10 +112,15 @@ function animateTo(target) {
   cancelAnim();
   const from = angle;
   const d = target - from;
-  if (Math.abs(d) < 0.01) return;
+  if (Math.abs(d) < 0.01) {
+    settlePreview();
+    return;
+  }
+  if (Math.abs(d) > 0.5) hidePreview();  // ‹ ›, side-card, drag-release snap → tuck before spinning
   if (reducedMotion) {
     angle = target;
     render();
+    settlePreview();
     return;
   }
   const t0 = performance.now();
@@ -91,7 +130,12 @@ function animateTo(target) {
     const e = 1 - Math.pow(1 - p, 3);
     angle = from + d * e;
     render();
-    raf = p < 1 ? requestAnimationFrame(tick) : null;
+    if (p < 1) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = null;
+      settlePreview();
+    }
   };
   raf = requestAnimationFrame(tick);
 }
@@ -134,6 +178,7 @@ stage.addEventListener('pointermove', (e) => {
   if (!drag.captured && moved > 5) {
     stage.setPointerCapture(drag.pointerId);
     drag.captured = true;
+    hidePreview();   // it's a real drag now → tuck the card
   }
   const dAngle = -dx * 0.28;
   drag.v = 0.7 * dAngle + 0.3 * drag.v;
@@ -169,6 +214,7 @@ stage.addEventListener('wheel', (e) => {
   if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
   e.preventDefault();
   cancelAnim();
+  hidePreview();   // trackpad spin → tuck; the 140ms debounce re-reveals on settle
   angle += e.deltaX * 0.35;
   render();
   clearTimeout(wheelTimer);
@@ -183,3 +229,25 @@ document.querySelector('.js-next').addEventListener('click', () => {
 });
 
 render();
+settlePreview();
+
+// Theme control: two native radios select light/dark. Applying = set data-theme on
+// <html> and persist. The initial theme is set pre-paint by the head script; here we
+// just check the matching radio and react to changes. localStorage key 'theme' is
+// shared with the head script.
+const themeRadios = document.querySelectorAll('.js-theme-radio');
+
+function syncThemeControl() {
+  const theme = document.documentElement.dataset.theme;
+  themeRadios.forEach((radio) => { radio.checked = radio.value === theme; });
+}
+
+themeRadios.forEach((radio) => {
+  radio.addEventListener('change', () => {
+    if (!radio.checked) return;
+    document.documentElement.dataset.theme = radio.value;
+    localStorage.setItem('theme', radio.value);
+  });
+});
+
+syncThemeControl();

@@ -156,11 +156,9 @@
   /* Hairline crosshair frame color (thin white rules over imagery) */
   --rule-on-image: rgba(255, 255, 255, 0.75);
 
-  /* Canonical page backdrop. The design canvas used a station-blur.jpeg
-     variant that couldn't be exported whole (API size cap) — this is the
-     design system's canonical artwork; swap the URL if the original photo
-     turns up. */
-  --image-backdrop: url('assets/backgrounds/gen-x-soft-club.webp');
+  /* Page backdrop — the Gen X Soft Club station-blur photograph, converted
+     from the source JPEG to WebP (1200×681, quality 82). */
+  --image-backdrop: url('assets/backgrounds/gen-x-soft-club.webp?v=2');
 
   --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   --duration-fast: 160ms;
@@ -191,6 +189,18 @@ body {
   background: var(--page-bg) var(--image-backdrop) center / cover no-repeat;
 }
 
+/* Dark-theme dim. Kept always-present at opacity 0 so toggling the theme fades
+   it in/out softly rather than snapping (see :root[data-theme="dark"] below). */
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 19, 38, 0.78);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-slow) var(--ease-soft);
+}
+
 .page {
   max-width: var(--content-max);
   margin: 0 auto;
@@ -201,7 +211,10 @@ body {
 /* Hero                                                                */
 /* ------------------------------------------------------------------ */
 .hero {
-  min-height: max(420px, 73vh);
+  /* Fit the hero to one screen so the enlarged preview + wheel never scroll on
+     a laptop; box-sizing folds the vertical padding into the 100vh. */
+  min-height: 100vh;
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: 48px;
@@ -225,6 +238,19 @@ body {
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
+  /* Ease the glass panel out (and the copy's slide left) when switching to dark. */
+  transition: background var(--duration-slow) var(--ease-soft),
+              border-color var(--duration-slow) var(--ease-soft),
+              box-shadow var(--duration-slow) var(--ease-soft),
+              padding var(--duration-slow) var(--ease-soft);
+}
+
+/* Soft colour cross-fade on the hero copy when the theme flips. */
+.hero__label,
+.hero__title,
+.hero__motif,
+.hero__blurb {
+  transition: color var(--duration-slow) var(--ease-soft);
 }
 
 .hero__label {
@@ -287,11 +313,62 @@ body {
 .wheel {
   position: relative;
   min-width: 0;
+  /* Pin the column to the viewport minus the hero's 32+48px vertical padding, so
+     the whole thing fits one screen with no scroll. It's a flex column: the fixed
+     stage + controls hold their size and the preview flexes to fill the rest. */
+  height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
 }
+
+/* Enlarged preview — a decorative copy of the front card that fills whatever
+   space is left above the fixed-size wheel and rises in when the wheel settles.
+   It lives OUTSIDE .wheel__stage on purpose: the stage's overflow:hidden + mask
+   would otherwise clip it. */
+.wheel__preview {
+  flex: 1 1 auto;           /* take all space above the stage → pushes wheel down */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;   /* fill the card height via flex — Safari-safe, unlike height:100% */
+  align-items: center;
+  justify-content: flex-end;/* card sits at the bottom, next to the wheel */
+  padding-bottom: 8px;
+  z-index: 3;               /* above the stage faces where they meet */
+  pointer-events: none;     /* never blocks dragging/clicking the wheel */
+}
+
+/* Fills the space above the wheel. Visible by default; the tuck/rise is a CSS
+   transition driven by the .is-tucked class in main.js. Keeping the resting state
+   (no class) opaque means any hiccup fails VISIBLE, and "show" is just REMOVING the
+   class — the inverse of an earlier opacity:0 + reflow-replay trick that left the
+   card invisible in Safari. */
+.wheel__preview .card {
+  width: min(100%, 460px);
+  flex: 1 1 auto;
+  min-height: 0;
+  transform-origin: bottom center;
+  transition: transform var(--duration-slow) var(--ease-soft),
+              opacity   var(--duration-slow) var(--ease-soft);
+}
+/* Tucked = hidden while the wheel is moving: slid down, shrunk, faded. Removing
+   this class rises it back up and enlarges it to rest. */
+.wheel__preview .card.is-tucked {
+  transform: translateY(36px) scale(0.9);
+  opacity: 0;
+}
+
+/* Enlarge the reused card sub-elements; let the screenshot grow to fill height. */
+.wheel__preview .card__shot  { height: auto; flex: 1 1 auto; min-height: 90px; }
+.wheel__preview .card__body  { padding: 16px 24px 18px; gap: 10px; }
+.wheel__preview .card__meta  { font-size: 12px; }
+.wheel__preview .card__title { font-size: clamp(20px, 2.2vw, 26px); }
+.wheel__preview .card__blurb { font-size: 15px; line-height: 1.6; }
+.wheel__preview .card__cta   { font-size: 11px; }
 
 .wheel__stage {
   position: relative;
   height: 320px;
+  flex-shrink: 0;          /* keep the wheel its fixed size; the preview absorbs the slack */
   perspective: 1400px;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);
@@ -334,11 +411,23 @@ body {
   color: inherit;
 }
 
+/* Wheel faces are compact previews — screenshot, meta and title only. The blurb
+   and CTA are reserved for the enlarged card above the wheel (which is a bare
+   .card clone with no .face ancestor, so it keeps them). */
+.face .card__blurb,
+.face .card__cta { display: none; }
+
+/* With the text trimmed, let the screenshot grow to fill the freed space so the
+   face reads as an image-forward thumbnail with the meta + title as a caption. */
+.face .card__shot { flex: 1 1 auto; }
+.face .card__body { flex: 0 0 auto; }
+
 .wheel__controls {
   display: flex;
   align-items: center;
   gap: 14px;
   margin-top: 14px;
+  flex-shrink: 0;
 }
 
 .wheel__btn {
@@ -458,6 +547,124 @@ body {
 /* ------------------------------------------------------------------ */
 /* Small screens — stack the hero, hide edge decoration                */
 /* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
+/* Theme: dark — the "Darken page" treatment promoted from the dev HUD.  */
+/* Light is the default look above (the "Glass" treatment); dark dims the */
+/* shared backdrop photo and floats the hero copy in light ink. Toggled   */
+/* via data-theme on <html> (set pre-paint in index.html, flipped by the  */
+/* .theme-toggle wiring in main.js).                                       */
+/* ------------------------------------------------------------------ */
+:root { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+:root[data-theme="dark"] .backdrop::after { opacity: 1; }
+
+/* No glass panel in dark — the dimmed backdrop already carries the copy, so it
+   floats in light ink flush to the column (matching the HUD's darken variant). */
+:root[data-theme="dark"] .hero__copy {
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+  padding: 32px 0;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:root[data-theme="dark"] .hero__title,
+:root[data-theme="dark"] .hero__blurb { color: #f4f8fb; }
+:root[data-theme="dark"] .hero__label,
+:root[data-theme="dark"] .hero__motif { color: rgba(244, 248, 251, 0.85); }
+
+/* ------------------------------------------------------------------ */
+/* Theme control — two Aqua-gel radio buttons. Period-correct for the     */
+/* early-2000s "soft club" look (the flat slider toggle is a 2007+ idiom).*/
+/* Native <input type="radio"> skinned glossy; fixed top-right, outside    */
+/* the hero grid so it can't affect the no-scroll layout.                  */
+/* ------------------------------------------------------------------ */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  padding: 8px 16px;
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-panel);
+}
+.theme-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.theme-radio__text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+/* Hide the native input visually but keep it in the a11y tree + focusable. */
+.theme-radio input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+/* Glossy gel bubble — a light "pearl" when off. */
+.theme-radio__dot {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 32%, #ffffff, #dfeaf1 45%, #b9ccd9 100%);
+  border: 1px solid rgba(83, 139, 168, 0.5);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9),
+              inset 0 -2px 3px rgba(55, 75, 104, 0.2);
+  transition: all var(--duration-fast) var(--ease-soft);
+}
+/* The Aqua top-gloss highlight. */
+.theme-radio__dot::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  right: 3px;
+  height: 5px;
+  border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+}
+/* Selected — blue gel, lit. */
+.theme-radio input:checked + .theme-radio__dot {
+  background: radial-gradient(circle at 50% 32%, #6d8ff0, var(--electric) 55%, var(--electric-deep) 100%);
+  border-color: var(--electric-deep);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6),
+              inset 0 -2px 3px rgba(16, 42, 90, 0.5),
+              0 0 8px rgba(28, 63, 196, 0.55);
+}
+.theme-radio input:focus-visible + .theme-radio__dot {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Keep the control legible over the dimmed backdrop in dark mode. */
+:root[data-theme="dark"] .theme-toggle {
+  background: rgba(20, 32, 56, 0.55);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+:root[data-theme="dark"] .theme-radio__text { color: rgba(244, 248, 251, 0.9); }
+
 @media (max-width: 860px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
@@ -469,8 +676,23 @@ body {
   .hero__title { font-size: 44px; }
 
   .hero__glyphs { display: none; }
+
+  /* TODO: refine phone layout. Drop the fixed-viewport column height and give the
+     preview a placeholder height so it doesn't collapse once the hero stacks. */
+  .wheel { height: auto; }
+  .wheel__preview { flex: none; height: 300px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  /* The preview never tucks under reduced motion — hidePreview() early-returns — so
+     these rules are belt-and-suspenders: they neutralize .is-tucked in case it ever
+     lands, keeping the card put and just swapping content on settle (no slide/fade). */
+  .wheel__preview .card { transition: none; }
+  .wheel__preview .card.is-tucked { transform: none; opacity: 1; }
+  /* Theme switch snaps instead of fading/sliding under reduced motion. */
+  .backdrop::after,
+  .hero__copy,
+  .hero__label, .hero__title, .hero__motif, .hero__blurb,
+  .theme-radio__dot { transition: none; }
 }

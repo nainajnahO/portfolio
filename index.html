@@ -6,9 +6,32 @@
   <title>Gen X — Software Portfolio</title>
   <meta name="description" content="I make quiet tools for loud problems. A one-page coding portfolio.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%231c3fc4'/%3E%3Ccircle cx='8' cy='8' r='3.5' fill='%23e8f1f5'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <script>
+    // Set the theme before first paint to avoid a flash of the wrong theme. A
+    // manual choice (localStorage) wins; otherwise follow the OS. Mirrors main.js.
+    (() => {
+      const stored = localStorage.getItem('theme');
+      const dark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
+
+  <!-- Light/dark theme control: two Aqua-gel radio buttons, fixed top-right -->
+  <div class="theme-toggle" role="radiogroup" aria-label="Colour theme">
+    <label class="theme-radio">
+      <input type="radio" name="theme" value="light" class="js-theme-radio">
+      <span class="theme-radio__dot" aria-hidden="true"></span>
+      <span class="theme-radio__text">Light</span>
+    </label>
+    <label class="theme-radio">
+      <input type="radio" name="theme" value="dark" class="js-theme-radio">
+      <span class="theme-radio__dot" aria-hidden="true"></span>
+      <span class="theme-radio__text">Dark</span>
+    </label>
+  </div>
 
   <!-- Backdrop artwork -->
   <div class="backdrop" aria-hidden="true"></div>
@@ -24,6 +47,7 @@
       </div>
 
       <div id="work" class="wheel">
+        <div class="wheel__preview js-preview" aria-hidden="true"></div>
         <div class="wheel__stage js-stage">
           <div class="wheel__ring js-ring">
             <!-- 12 wheel faces cloned from the template below by main.js -->
@@ -57,6 +81,6 @@
     </a>
   </template>
 
-  <script src="main.js?v=1" defer></script>
+  <script src="main.js?v=7" defer></script>
 </body>
 </html>
