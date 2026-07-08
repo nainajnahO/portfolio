@@ -1,0 +1,236 @@
+/* Design sandbox chrome — only loaded when index.html is opened with ?sandbox.
+   Everything is scoped under #sandbox-root / .sbx-* so it can never touch the
+   real page's styling. The root is click-through; only interactive children
+   opt back into pointer events. */
+
+#sandbox-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;               /* above CRT layers (100-102) and .controls (50) */
+  pointer-events: none;        /* never blackhole clicks meant for the page */
+  font-family: "Share Tech Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ---- Toolbar ---------------------------------------------------------- */
+
+.sbx-toolbar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 3;                  /* stay above the per-block overlays (they're later in the DOM) */
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 232px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(14, 16, 22, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color: #e8f1f5;
+  font-size: 12px;
+  line-height: 1.3;
+  backdrop-filter: blur(6px);
+}
+
+.sbx-toolbar h2 {
+  margin: 0 0 2px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  font-weight: 400;
+  cursor: move;
+  touch-action: none;
+}
+
+.sbx-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sbx-row--wrap { flex-wrap: wrap; }
+
+.sbx-btn {
+  flex: 1 1 auto;
+  appearance: none;
+  cursor: pointer;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font: inherit;
+  letter-spacing: 0.04em;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.sbx-btn:hover { background: rgba(255, 255, 255, 0.13); }
+
+.sbx-btn.is-on {
+  background: #1c3fc4;
+  border-color: #4a6bff;
+  color: #fff;
+}
+
+.sbx-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sbx-field > span:first-child {
+  flex: 0 0 44px;
+  opacity: 0.75;
+}
+
+.sbx-field input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: #4a6bff;
+}
+
+.sbx-field output {
+  flex: 0 0 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.sbx-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sbx-check input { accent-color: #4a6bff; }
+
+.sbx-readout {
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.7;
+  font-size: 11px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 6px;
+}
+
+.sbx-hint {
+  font-size: 10.5px;
+  opacity: 0.55;
+  line-height: 1.4;
+}
+
+.sbx-fib-controls { display: none; flex-direction: column; gap: 7px; }
+.sbx-fib-controls.is-open { display: flex; }
+
+/* ---- Per-block overlays (only visible while arranging) ---------------- */
+
+.sbx-overlay {
+  position: fixed;
+  pointer-events: none;         /* shown → auto (see .is-arranging below) */
+  display: none;
+  box-sizing: border-box;
+  border: 1.5px dashed var(--sbx-accent, #39d0ff);
+  background: color-mix(in srgb, var(--sbx-accent, #39d0ff) 8%, transparent);
+  cursor: grab;
+  touch-action: none;
+}
+
+#sandbox-root.is-arranging .sbx-overlay {
+  display: block;
+  pointer-events: auto;
+}
+
+.sbx-overlay:active { cursor: grabbing; }
+
+.sbx-label {
+  position: absolute;
+  left: -1.5px;
+  top: -22px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #0b0d12;
+  background: var(--sbx-accent, #39d0ff);
+  border-radius: 4px 4px 0 0;
+  pointer-events: none;
+}
+
+.sbx-handle {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  background: var(--sbx-accent, #39d0ff);
+  border: 2px solid #0b0d12;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+/* ---- Fibonacci overlay ----------------------------------------------- */
+
+.sbx-fib {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;         /* click-through; only the hit-rect opts in */
+  display: none;
+}
+
+.sbx-fib.is-on { display: block; }
+
+.sbx-fib .sbx-fib-grid rect {
+  fill: none;
+  stroke: #ff5db1;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.sbx-fib .sbx-fib-spiral {
+  fill: none;
+  stroke: #ffd23f;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.sbx-fib-hit {
+  fill: transparent;
+  pointer-events: none;         /* → all only in "move spiral" mode */
+  cursor: move;
+}
+
+.sbx-fib.is-move .sbx-fib-hit { pointer-events: all; }
+
+/* ---- Copy toast ------------------------------------------------------- */
+
+.sbx-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 4;
+  transform: translateX(-50%) translateY(12px);
+  pointer-events: none;
+  padding: 9px 16px;
+  border-radius: 8px;
+  background: #1c3fc4;
+  color: #fff;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.sbx-toast.is-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

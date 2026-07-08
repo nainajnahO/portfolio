@@ -248,6 +248,10 @@ const WHEEL_MIN_SCALE = 0.62;
 const WHEEL_CHROME = 226;
 
 function applyWheelScale() {
+  // The design sandbox (index.html?sandbox) freezes the wheel while you drag/scale
+  // it; re-fitting then would fight the sandbox's transform. hasAttribute (not
+  // dataset.arrange, which is falsy when empty) guards it. No-op in production.
+  if (document.documentElement.hasAttribute('data-arrange')) return;
   const cardH = previewCard.getBoundingClientRect().height;
   const fit = (window.innerHeight - WHEEL_CHROME - cardH) / WHEEL_STAGE_BASE;
   const scale = Math.max(WHEEL_MIN_SCALE, Math.min(1, fit));
