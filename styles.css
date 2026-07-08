@@ -261,8 +261,7 @@ body {
   min-height: 100dvh;
   box-sizing: border-box;
   /* Both columns start at a shared top line ~90px down: the GEN X copy and the
-     enlarged card begin at the same height rather than centring independently.
-     Reset to 0 on the stacked phone layout below. */
+     enlarged card begin at the same height rather than centring independently. */
   --block-top: 90px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
@@ -405,13 +404,16 @@ body {
 }
 
 /* Enlarge the reused card sub-elements. The screenshot is a fixed 16:9 frame
-   (height follows the card width), not a flexible filler. */
+   (height follows the card width), not a flexible filler. The text + body padding
+   scale with --wheel-scale (the same token that drives the wheel geometry and the
+   card's width) so the whole card shrinks as one unit with no lower floor — the
+   calc bases equal today's px, so at scale 1 nothing changes. */
 .wheel__preview .card__shot  { aspect-ratio: 16 / 9; height: auto; flex: 0 0 auto; min-height: 0; }
-.wheel__preview .card__body  { padding: 16px 24px 18px; gap: 10px; }
-.wheel__preview .card__meta  { font-size: 12px; }
-.wheel__preview .card__title { font-size: clamp(20px, 2.2vw, 26px); }
-.wheel__preview .card__blurb { font-size: 15px; line-height: 1.6; }
-.wheel__preview .card__cta   { font-size: 11px; }
+.wheel__preview .card__body  { padding: calc(16px * var(--wheel-scale)) calc(24px * var(--wheel-scale)) calc(18px * var(--wheel-scale)); gap: calc(10px * var(--wheel-scale)); }
+.wheel__preview .card__meta  { font-size: calc(12px * var(--wheel-scale)); }
+.wheel__preview .card__title { font-size: calc(26px * var(--wheel-scale)); }
+.wheel__preview .card__blurb { font-size: calc(15px * var(--wheel-scale)); line-height: 1.6; }
+.wheel__preview .card__cta   { font-size: calc(11px * var(--wheel-scale)); }
 
 .wheel__stage {
   position: relative;
@@ -475,9 +477,12 @@ body {
    preview clone (NOT a .face, so it keeps its own content-sized height). */
 .face .card { aspect-ratio: var(--phi); height: auto; }
 
-/* The body is the whole card now (base .card__body { flex: 1 }); centre the
-   meta + title in the shorter golden card. */
-.face .card__body { justify-content: center; }
+/* The body is the whole card now (base .card__body { flex: 1 }); centre the meta +
+   title, and scale their type + padding with --wheel-scale so the face text shrinks
+   and grows in lockstep with the (already --wheel-scale-sized) face box. */
+.face .card__body  { justify-content: center; padding: calc(16px * var(--wheel-scale)) calc(18px * var(--wheel-scale)) calc(18px * var(--wheel-scale)); gap: calc(8px * var(--wheel-scale)); }
+.face .card__meta  { font-size: calc(10px * var(--wheel-scale)); }
+.face .card__title { font-size: calc(15px * var(--wheel-scale)); }
 
 .wheel__controls {
   display: flex;
@@ -646,6 +651,9 @@ body {
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
+  /* Scale the whole theme/CRT stack with the layout, pinned to the top-right corner. */
+  transform: scale(var(--wheel-scale));
+  transform-origin: top right;
 }
 /* Both control rows are the same glass pill. */
 .theme-toggle,
@@ -816,94 +824,78 @@ body {
   99%           { opacity: 0.06; }
 }
 
-@media (max-width: 860px) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
-    gap: 32px;
-    padding-top: 48px;
-    --block-top: 0;   /* stacked: no shared top line, drop the desktop offset */
-  }
-
-  .hero__title { font-size: 44px; }
-
-  /* Stacked: drop the one-screen column height; the card is a fixed-height 16:9
-     element now, so the preview sizes to it naturally (no placeholder height). */
-  .wheel { min-height: 0; }
-  .wheel__preview { flex: none; }
+/* Lift the wheel out of the grid and drop its front face onto the golden "eye"
+   (the inner residual rectangle of the contain-fit golden spiral). main.js computes
+   --wheel-x/--wheel-y/--wheel-scale from the viewport and sets data-wheel-placed once
+   ready, so before JS runs the page keeps the in-flow flex fallback. With the preview
+   + controls pulled out of flow (absolute, below), .wheel__stage is #work's only
+   in-flow child, so #work shrink-wraps to the stage — translate(-50%,-50%) then centres
+   the STAGE (= the front face, which nets to z=0) on the eye with no content
+   measurement. A 2D translate on the stage's ancestor is 3D-safe (perspective is on
+   .wheel__stage, preserve-3d on .wheel__ring). Applies at every width now — there is
+   no separate phone layout. */
+html[data-wheel-placed] #work {
+  position: fixed;
+  left: var(--wheel-x);
+  top: var(--wheel-y);
+  width: calc(250px * var(--wheel-scale) * 2.4);   /* stage / neighbour-peek width — TUNABLE */
+  min-height: 0;                                    /* override .wheel min-height so #work == stage */
+  margin: 0;
+  transform: translate(-50%, -50%);
 }
 
-/* Desktop only: lift the wheel out of the grid and drop its front face onto the
-   golden "eye" (the inner residual rectangle of the contain-fit golden spiral).
-   main.js computes --wheel-x/--wheel-y/--wheel-scale from the viewport and sets
-   data-wheel-placed once ready, so before JS (and on mobile) the page keeps the
-   in-flow flex layout. With the preview + controls pulled out of flow (absolute,
-   below), .wheel__stage is #work's only in-flow child, so #work shrink-wraps to
-   the stage — translate(-50%,-50%) then centres the STAGE (= the front face, which
-   nets to z=0) on the eye with no content measurement. A 2D translate on the stage's
-   ancestor is 3D-safe (perspective is on .wheel__stage, preserve-3d on .wheel__ring). */
-@media (min-width: 861px) {
-  html[data-wheel-placed] #work {
-    position: fixed;
-    left: var(--wheel-x);
-    top: var(--wheel-y);
-    width: calc(250px * var(--wheel-scale) * 2.4);   /* stage / neighbour-peek width — TUNABLE */
-    min-height: 0;                                    /* override .wheel min-height so #work == stage */
-    margin: 0;
-    transform: translate(-50%, -50%);
-  }
+/* Hero copy lifted onto the mirror eye and scaled with the viewport (the whole
+   block — type + padding — via one transform; the desktop copy uses fixed px
+   sizes, so this is the sole viewport response). translate(-50%,-50%) keeps its
+   centre on the eye for any scale; the 2D transform is flat (no 3D here). */
+html[data-hero-placed] .hero__copy {
+  position: fixed;
+  left: var(--hero-x);
+  top: var(--hero-y);
+  margin: 0;
+  transform: translate(-50%, -50%) scale(var(--hero-scale));
+  transform-origin: center;
+}
 
-  /* Hero copy lifted onto the mirror eye and scaled with the viewport (the whole
-     block — type + padding — via one transform; the desktop copy uses fixed px
-     sizes, so this is the sole viewport response). translate(-50%,-50%) keeps its
-     centre on the eye for any scale; the 2D transform is flat (no 3D here). */
-  html[data-hero-placed] .hero__copy {
-    position: fixed;
-    left: var(--hero-x);
-    top: var(--hero-y);
-    margin: 0;
-    transform: translate(-50%, -50%) scale(var(--hero-scale));
-    transform-origin: center;
-  }
+/* Enlarged preview: a band in the right column, top on the GEN X copy's top line
+   and bottom a small gap above the wheel (both offsets from #work, set by main.js).
+   Out of flow, so its height never shifts the wheel anchor. */
+html[data-wheel-placed] .wheel__preview {
+  position: absolute;
+  top: var(--preview-top);       /* shared top line with the GEN X copy */
+  bottom: var(--preview-bottom); /* small gap above the wheel's front face */
+  left: 0;
+  right: 0;
+  margin: 0;
+  flex: none;
+}
+/* Card fills the band (full column width); the screenshot flexes to absorb the
+   slack so the body keeps its (scaled) size. */
+html[data-wheel-placed] .wheel__preview .card {
+  width: 100%;
+  height: 100%;
+}
+html[data-wheel-placed] .wheel__preview .card__shot {
+  flex: 1 1 auto;
+  height: auto;
+  aspect-ratio: auto;   /* let flex set the height, not the 16:9 ratio */
+  min-height: 0;
+}
+html[data-wheel-placed] .wheel__preview .card__body {
+  flex: 0 0 auto;       /* natural height; the shot takes the extra space */
+}
 
-  /* Enlarged preview: a band in the right column, top on the GEN X copy's top line
-     and bottom a small gap above the wheel (both offsets from #work, set by main.js).
-     Out of flow, so its height never shifts the wheel anchor. */
-  html[data-wheel-placed] .wheel__preview {
-    position: absolute;
-    top: var(--preview-top);       /* shared top line with the GEN X copy */
-    bottom: var(--preview-bottom); /* small gap above the wheel's front face */
-    left: 0;
-    right: 0;
-    margin: 0;
-    flex: none;
-  }
-  /* Card fills the band (full column width); the screenshot flexes to absorb the
-     slack so the body text keeps its natural size. */
-  html[data-wheel-placed] .wheel__preview .card {
-    width: 100%;
-    height: 100%;
-  }
-  html[data-wheel-placed] .wheel__preview .card__shot {
-    flex: 1 1 auto;
-    height: auto;
-    aspect-ratio: auto;   /* let flex set the height, not the 16:9 ratio */
-    min-height: 0;
-  }
-  html[data-wheel-placed] .wheel__preview .card__body {
-    flex: 0 0 auto;       /* natural height; the shot takes the extra space */
-  }
-
-  /* Controls: glued directly below the stage, centred and sized to content so the
-     meta/counter never wrap when the stage is narrow at small scales. */
-  html[data-wheel-placed] .wheel__controls {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: max-content;
-    max-width: 92vw;
-  }
+/* Controls: glued directly below the stage, centred, and scaled as one unit with
+   --wheel-scale (origin at the top-centre attach point) so the buttons/meta/counter
+   shrink and grow in lockstep with the wheel. */
+html[data-wheel-placed] .wheel__controls {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) scale(var(--wheel-scale));
+  transform-origin: top center;
+  width: max-content;
+  max-width: 92vw;
 }
 
 @media (prefers-reduced-motion: reduce) {
