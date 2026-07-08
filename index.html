@@ -19,7 +19,7 @@
       document.documentElement.dataset.crt = localStorage.getItem('crt') === 'off' ? 'off' : 'on';
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=27">
+  <link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
 
@@ -63,7 +63,7 @@
         <div class="hero__label">Young Adult / Software</div>
         <h1 class="hero__title">Gen X</h1>
         <div class="hero__motif">Contemporary Soft Club</div>
-        <p class="hero__blurb">I make quiet tools for loud problems. Three of them live to the right.</p>
+        <p class="hero__blurb">I make quiet tools for loud problems. Eight of them live to the right.</p>
       </div>
 
       <div id="work" class="wheel">
@@ -88,7 +88,10 @@
   <template class="js-face-template">
     <a class="face" href="#" draggable="false">
       <div class="card">
-        <div class="card__shot">[ SCREENSHOT ]<div class="card__scanlines" aria-hidden="true"></div></div>
+        <div class="card__shot">
+          <img class="card__shot-img" alt="" draggable="false">
+          <div class="card__scanlines" aria-hidden="true"></div>
+        </div>
         <div class="card__body">
           <span class="card__meta"></span>
           <h3 class="card__title"></h3>
@@ -112,6 +115,6 @@
   <div class="crt-glass"   aria-hidden="true"></div>
   <div class="crt-flicker" aria-hidden="true"></div>
 
-  <script src="main.js?v=17" defer></script>
+  <script src="main.js?v=18" defer></script>
 </body>
 </html>

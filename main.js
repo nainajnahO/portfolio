@@ -2,16 +2,23 @@
 // No dependencies, no build step. Ported from the design's React logic
 // (PortfolioSite.dc.html on claude.ai/design) to vanilla JS.
 
+// The real portfolio. `meta` is the tech stack (shown on the face + in the
+// controls pill); `img`/`cta` are used only by the enlarged preview card.
 const projects = [
-  { meta: 'PROJ.01 / 2026 / RUST', title: 'Haze CLI', blurb: 'Turns messy CSVs into clean dashboards, straight from the terminal.', url: '#' },
-  { meta: 'PROJ.02 / 2025 / TS', title: 'Platform 9', blurb: 'A tiny realtime engine for ambient wall dashboards.', url: '#' },
-  { meta: 'PROJ.03 / 2024 / TS', title: 'Last Train', blurb: 'Transit departure boards for cities you have never lived in.', url: '#' },
+  { meta: 'Swift · SwiftUI · Core ML', title: 'PureLenz', blurb: 'A minimalist iOS camera with tactile manual control over ISO and shutter speed. On-device Core ML learns your style and adapts as you shoot.', img: 'images/purelenz.jpg', cta: 'View repo', url: 'https://github.com/nainajnahO/PureLenz' },
+  { meta: 'React · TypeScript · Supabase · Three.js', title: 'forskapong', blurb: 'The live site and tournament engine for Tentafestivalen Beerpong (Uppsala, 2026) — a 3D landing page and venue map up front, with a Swiss-plus-knockout bracket engine, live scoreboard, and admin tooling on Supabase behind it.', img: 'images/forskapong.jpg', cta: 'Visit site', url: 'https://rollnsolution.com' },
+  { meta: 'JavaScript · Chart.js · 98.css', title: 'Bolånekalkyl', blurb: 'A calculator for how a Swedish mortgage plays out over decades — change any value and the debt, monthly cost, and total interest update live; compare scenarios side by side and model rate changes at chosen years. Dressed as Windows 98, on purpose.', img: 'images/bolanekalkyl.png', cta: 'Open calculator', url: 'https://nainajnaho.github.io/Bolanekalkyl/' },
+  { meta: 'FastAPI · pgvector · Voyage · Anthropic', title: 'rag-knowledge-base', blurb: 'A retrieval-augmented knowledge base — upload documents, run hybrid search, and chat with answers backed by verifiable citations.', img: 'images/rag-knowledge-base.png', cta: 'View repo', url: 'https://github.com/nainajnahO/rag-knowledge-base' },
+  { meta: 'Python · Claude API · Gradio', title: 'Dr. Fungi', blurb: 'A multimodal LLM chatbot built on the Claude API with a Gradio interface — converse over both text and images.', img: 'images/dr-fungi.png', cta: 'View repo', url: 'https://github.com/nainajnahO/Dr.-Fungi' },
+  { meta: 'Python · Jupyter · scikit-learn', title: 'trump-tweet-analysis', blurb: "A data study of Trump's tweets — engagement patterns, temporal trends, and clustering, told through a set of visualisations.", img: 'images/trump-tweet-analysis.png', cta: 'View repo', url: 'https://github.com/nainajnahO/trump-tweet-analysis' },
+  { meta: 'Python · pandas · NumPy', title: 'Rhoa', blurb: 'A pandas DataFrame extension that adds technical-analysis accessors — indicators and signals, straight on your dataframe.', img: 'images/rhoa.png', cta: 'View repo', url: 'https://github.com/nainajnahO/Rhoa' },
+  { meta: 'Haskell', title: 'WordleHaskell', blurb: 'A terminal Wordle clone written in Haskell for a Program Design & Data Structures course.', img: 'images/wordlehaskell.png', cta: 'View repo', url: 'https://github.com/nainajnahO/WordleHaskell' },
 ];
 
-// The wheel is a 12-sided cylinder: faces every 30°, the three projects
-// repeating around it so a card is always approaching.
-const FACES = 12;
-const STEP = 30;
+// The wheel is an 8-sided cylinder: faces every 45°, one project per face, so a
+// card is always approaching (8 × 45° covers the full 360°).
+const FACES = 8;
+const STEP = 45;
 // Design depth is 520px; the wheel is drawn at a uniform --wheel-scale so it
 // fits shorter laptops without clipping the enlarged card. RADIUS is the scaled
 // depth used per frame, kept in lockstep with the CSS ring translateZ (which is
@@ -67,6 +74,11 @@ function fillCard(cardEl, p) {
   cardEl.querySelector('.card__meta').textContent = p.meta;
   cardEl.querySelector('.card__title').textContent = p.title;
   cardEl.querySelector('.card__blurb').textContent = p.blurb;
+  // Only the enlarged preview card shows the screenshot + CTA (faces hide both).
+  const img = cardEl.querySelector('.card__shot-img');
+  img.src = p.img;
+  img.alt = `${p.title} — screenshot`;
+  cardEl.querySelector('.card__cta').textContent = `${p.cta} →`;
 }
 
 // Reveal the enlarged preview on the settled project: swap content (while it's

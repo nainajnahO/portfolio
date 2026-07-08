@@ -558,6 +558,17 @@ body {
   color: var(--steel);
 }
 
+/* The screenshot fills the shot box (cover-cropped); the scanlines below sit on
+   top of it for the CRT texture. Only rendered on the enlarged preview card —
+   faces hide .card__shot entirely. */
+.card__shot-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .card__scanlines {
   position: absolute;
   inset: 0;
