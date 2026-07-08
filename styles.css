@@ -380,11 +380,8 @@ body {
   pointer-events: none;     /* never blocks dragging/clicking the wheel */
 }
 
-/* Fills the space above the wheel. Visible by default; the tuck/rise is a CSS
-   transition driven by the .is-tucked class in main.js. Keeping the resting state
-   (no class) opaque means any hiccup fails VISIBLE, and "show" is just REMOVING the
-   class — the inverse of an earlier opacity:0 + reflow-replay trick that left the
-   card invisible in Safari. */
+/* Fills the space above the wheel. A stable panel: always visible, only its
+   content swaps when the wheel settles (main.js). */
 .wheel__preview .card {
   width: min(100%, 460px);
   /* Size to content and never grow/shrink: the 16:9 shot + full body set a fixed
@@ -392,22 +389,11 @@ body {
      card's fixed 262px). The wheel/page absorbs any size mismatch, not the card. */
   flex: 0 0 auto;
   height: auto;
-  transform-origin: bottom center;
-  transition: transform var(--duration-slow) var(--ease-soft),
-              opacity   var(--duration-slow) var(--ease-soft);
   /* The band around the card stays pointer-events:none (drags pass through), but
      the card itself is the primary click target → opens the active project (main.js).
      Faces below remain the keyboard-reachable <a> links. */
   pointer-events: auto;
   cursor: pointer;
-}
-/* Tucked = hidden while the wheel is moving: slid down, shrunk, faded. Removing
-   this class rises it back up and enlarges it to rest. While tucked it must not
-   catch clicks (it's invisible and the front project is mid-change). */
-.wheel__preview .card.is-tucked {
-  transform: translateY(36px) scale(0.9);
-  opacity: 0;
-  pointer-events: none;
 }
 
 /* Enlarge the reused card sub-elements. The screenshot is a fixed 16:9 frame
@@ -441,7 +427,7 @@ body {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: translateZ(calc(-520px * var(--wheel-scale)));
+  transform: translateZ(calc(-340px * var(--wheel-scale)));
 }
 
 /* Front-card registration frame. Centred on the golden face and matched to its
@@ -918,11 +904,6 @@ html[data-wheel-placed] .wheel__controls {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  /* The preview never tucks under reduced motion — hidePreview() early-returns — so
-     these rules are belt-and-suspenders: they neutralize .is-tucked in case it ever
-     lands, keeping the card put and just swapping content on settle (no slide/fade). */
-  .wheel__preview .card { transition: none; }
-  .wheel__preview .card.is-tucked { transform: none; opacity: 1; }
   /* Theme switch snaps instead of fading/sliding under reduced motion. */
   .backdrop::after,
   .hero__copy,

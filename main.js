@@ -19,11 +19,13 @@ const projects = [
 // card is always approaching (8 × 45° covers the full 360°).
 const FACES = 8;
 const STEP = 45;
-// Design depth is 520px; the wheel is drawn at a uniform --wheel-scale so it
-// fits shorter laptops without clipping the enlarged card. RADIUS is the scaled
-// depth used per frame, kept in lockstep with the CSS ring translateZ (which is
-// `-520px * var(--wheel-scale)`) so the 3D front-card registration stays exact.
-const BASE_RADIUS = 520;
+// Cylinder depth (px), tightened from the design's 520 to 340 so the 8 faces
+// (45° apart) sit as a close fan instead of splaying out to the stage edges. The
+// wheel is drawn at a uniform --wheel-scale so it fits shorter laptops. RADIUS is
+// the scaled depth used per frame; it MUST stay in lockstep with the CSS ring
+// translateZ (`-340px * var(--wheel-scale)` in styles.css) or the front card
+// stops registering at z=0 and the golden-eye placement drifts.
+const BASE_RADIUS = 340;
 let RADIUS = BASE_RADIUS;
 
 const stage = document.querySelector('.js-stage');
@@ -43,12 +45,16 @@ previewEl.append(previewCard);
 // The preview mirrors the settled front project; clicking it opens that project's
 // link in a new tab — matching the faces' target="_blank". The big card is the
 // obvious target, whereas the real <a> is the smaller face below (kept for
-// keyboard/screen-reader users). Only fires when the card is visible (CSS drops
-// pointer-events while it's tucked mid-spin).
+// keyboard/screen-reader users).
 previewCard.addEventListener('click', () => {
   const url = projects[frontActiveIdx()].url;
   if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
 });
+
+// Warm the browser cache with every screenshot up front. The preview card swaps
+// its image on each settle; without this, a card would visibly load in as the
+// wheel lands on it (the old placeholders had no images, so nothing ever loaded).
+projects.forEach((p) => { new Image().src = p.img; });
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -91,21 +97,13 @@ function fillCard(cardEl, p) {
   cardEl.querySelector('.card__cta').textContent = `${p.cta} →`;
 }
 
-// Reveal the enlarged preview on the settled project: swap content (while it's
-// still tucked/hidden) then rise it back up. Called only when the wheel settles,
-// and every motion tucks the card first, so this is where "show" lives. Removing
-// the class can't silently no-op — the card is visible by default (fail-visible),
-// the inverse of the reflow-replay trick that broke this in Safari.
+// Update the enlarged preview to the settled project. The card is a stable panel:
+// always visible, only its content changes. Called whenever the wheel settles; the
+// screenshots are preloaded, so the swap is instant with no visible load. (It used
+// to tuck away — slide + fade out — on every move and rise back on settle, but with
+// real screenshots that read as the card "reloading" and left a gap mid-spin.)
 function settlePreview() {
   fillCard(previewCard, projects[frontActiveIdx()]);
-  previewCard.classList.remove('is-tucked');
-}
-
-// Tuck the card away the instant the wheel starts moving; it stays hidden until
-// the next settle re-reveals it. The CSS transition does the slide + fade.
-function hidePreview() {
-  if (reducedMotion) return;               // reduced motion: never hide, just swap on settle
-  previewCard.classList.add('is-tucked');  // idempotent: re-adding an existing class is a no-op
 }
 
 function render() {
@@ -145,7 +143,6 @@ function animateTo(target) {
     settlePreview();
     return;
   }
-  if (Math.abs(d) > 0.5) hidePreview();  // ‹ ›, side-card, drag-release snap → tuck before spinning
   if (reducedMotion) {
     angle = target;
     render();
@@ -207,7 +204,6 @@ stage.addEventListener('pointermove', (e) => {
   if (!drag.captured && moved > 5) {
     stage.setPointerCapture(drag.pointerId);
     drag.captured = true;
-    hidePreview();   // it's a real drag now → tuck the card
   }
   const dAngle = -dx * 0.28;
   drag.v = 0.7 * dAngle + 0.3 * drag.v;
@@ -243,7 +239,6 @@ stage.addEventListener('wheel', (e) => {
   if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
   e.preventDefault();
   cancelAnim();
-  hidePreview();   // trackpad spin → tuck; the 140ms debounce re-reveals on settle
   angle += e.deltaX * 0.35;
   render();
   clearTimeout(wheelTimer);
@@ -264,7 +259,7 @@ document.querySelector('.js-next').addEventListener('click', () => {
 // residual width through --wheel-scale, which also drives the CSS geometry (stage/
 // perspective/ring/face) and the JS depth (RADIUS) so the 3D registration stays exact.
 const PHI = 1.6180339887498949;   // golden ratio (mirrors styles.css --phi)
-const WHEEL_FACE_BASE = 250;      // mirrors the .face width base in styles.css (like BASE_RADIUS ↔ 520)
+const WHEEL_FACE_BASE = 250;      // mirrors the .face width base in styles.css (like BASE_RADIUS ↔ 340)
 const WHEEL_DEPTH = 4;            // residual depth: R4 (even ⇒ a landscape φ:1 front face)
 // Hero copy sits at the MIRROR of the wheel's eye (flipping the spiral H+V reflects
 // the eye through the rect centre) and scales in lockstep with the wheel. Its scale
@@ -302,8 +297,8 @@ function placeWheel() {
   const ox = (window.innerWidth - W) / 2, oy = (window.innerHeight - H) / 2;
   const depth = WHEEL_DEPTH;
   const { cx, cy, fw } = residualRect(depth);
-  // Face width == residual width. The front face nets to z=0 (ring at -520*scale,
-  // face at +520*scale) so perspective magnification is 1 → CSS width == on-screen
+  // Face width == residual width. The front face nets to z=0 (ring at -340*scale,
+  // face at +340*scale) so perspective magnification is 1 → CSS width == on-screen
   // width. Hence scale = residualWidth / faceBase. Fully dynamic — no floor and no
   // cap — so the whole layout tracks the window without limit in either direction.
   const scale = (fw * W) / WHEEL_FACE_BASE;
