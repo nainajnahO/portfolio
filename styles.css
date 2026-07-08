@@ -153,6 +153,12 @@
   --hero-x: 30vw;
   --hero-y: 30vh;
   --hero-scale: 1;
+
+  /* Enlarged preview's vertical band, as offsets from #work (its absolute container):
+     top = the GEN X copy's top line, bottom = a gap above the wheel's front face.
+     main.js overwrites these on desktop; consumed only under html[data-wheel-placed]. */
+  --preview-top: 0px;
+  --preview-bottom: 0px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -860,18 +866,32 @@ body {
     transform-origin: center;
   }
 
-  /* Enlarged preview: shrunk and glued directly above the stage (out of flow, so its
-     height never shifts the anchor). */
+  /* Enlarged preview: a band in the right column, top on the GEN X copy's top line
+     and bottom a small gap above the wheel (both offsets from #work, set by main.js).
+     Out of flow, so its height never shifts the wheel anchor. */
   html[data-wheel-placed] .wheel__preview {
     position: absolute;
-    bottom: 100%;
+    top: var(--preview-top);       /* shared top line with the GEN X copy */
+    bottom: var(--preview-bottom); /* small gap above the wheel's front face */
     left: 0;
     right: 0;
     margin: 0;
     flex: none;
   }
+  /* Card fills the band (full column width); the screenshot flexes to absorb the
+     slack so the body text keeps its natural size. */
   html[data-wheel-placed] .wheel__preview .card {
-    width: 100%;   /* full column/stage width (= #work's 250·scale·2.4) */
+    width: 100%;
+    height: 100%;
+  }
+  html[data-wheel-placed] .wheel__preview .card__shot {
+    flex: 1 1 auto;
+    height: auto;
+    aspect-ratio: auto;   /* let flex set the height, not the 16:9 ratio */
+    min-height: 0;
+  }
+  html[data-wheel-placed] .wheel__preview .card__body {
+    flex: 0 0 auto;       /* natural height; the shot takes the extra space */
   }
 
   /* Controls: glued directly below the stage, centred and sized to content so the

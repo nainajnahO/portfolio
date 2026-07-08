@@ -20,6 +20,8 @@ const BASE_RADIUS = 520;
 let RADIUS = BASE_RADIUS;
 
 const stage = document.querySelector('.js-stage');
+const workEl = document.getElementById('work');       // the whole wheel unit (positioning ctx for the preview)
+const heroCopy = document.querySelector('.hero__copy');
 const ring = document.querySelector('.js-ring');
 const faceTemplate = document.querySelector('.js-face-template');
 const activeMetaEl = document.querySelector('.js-active-meta');
@@ -259,6 +261,9 @@ const WHEEL_DEPTH = 4;            // desktop target = residual R4 (even ⇒ land
 const HERO_REF_W = 1451;         // TUNABLE: contain-fit width where the copy is 1×
 const HERO_MIN_SCALE = 0.72;
 const HERO_MAX_SCALE = 1.5;
+// Enlarged preview spans a band: from the GEN X copy's top line down to PREVIEW_GAP
+// px above the wheel's visible front card (lower than the old stage-box-top glue).
+const PREVIEW_GAP = 16;          // TUNABLE: px between the card's bottom and the front face
 const html = document.documentElement;
 const desktopMQ = matchMedia('(min-width: 861px)');
 
@@ -310,6 +315,17 @@ function placeWheel() {
     html.style.setProperty('--hero-x', (ox + (1 - cx) * W).toFixed(2) + 'px');
     html.style.setProperty('--hero-y', (oy + (1 - cy) * H).toFixed(2) + 'px');
     html.setAttribute('data-hero-placed', '');
+
+    // Enlarged preview band: top = the GEN X copy's top line, bottom = a small gap
+    // above the wheel's front face. Expressed as offsets from #work (the preview's
+    // absolute containing block). Measured AFTER the wheel+hero vars above are set,
+    // so getBoundingClientRect reflects this frame's transforms.
+    const frontCardH = (fw * W) / PHI;                        // landscape φ:1 front face height
+    const bandBottom = (oy + cy * H) - frontCardH / 2 - PREVIEW_GAP;  // viewport y
+    const workRect = workEl.getBoundingClientRect();
+    const heroTop = heroCopy.getBoundingClientRect().top;
+    html.style.setProperty('--preview-top', (heroTop - workRect.top).toFixed(2) + 'px');
+    html.style.setProperty('--preview-bottom', (workRect.bottom - bandBottom).toFixed(2) + 'px');
     return;
   }
 
@@ -321,6 +337,8 @@ function placeWheel() {
   html.style.removeProperty('--hero-x');
   html.style.removeProperty('--hero-y');
   html.style.removeProperty('--hero-scale');
+  html.style.removeProperty('--preview-top');
+  html.style.removeProperty('--preview-bottom');
   const rectW = Math.min(window.innerWidth, window.innerHeight * PHI);
   const goldenScale = (FACE_FRACTION * rectW) / WHEEL_FACE_BASE;
   const cardH = previewCard.getBoundingClientRect().height;
