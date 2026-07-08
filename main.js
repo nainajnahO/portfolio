@@ -40,6 +40,15 @@ const previewEl = document.querySelector('.js-preview');
 const previewCard = faceTemplate.content.querySelector('.card').cloneNode(true);
 previewEl.append(previewCard);
 
+// The preview mirrors the settled front project; clicking it follows that project's
+// link — the big card is the obvious target, whereas the real <a> is the smaller
+// face below (kept for keyboard/screen-reader users). Only fires when the card is
+// visible (CSS drops pointer-events while it's tucked mid-spin).
+previewCard.addEventListener('click', () => {
+  const url = projects[frontActiveIdx()].url;
+  if (url && url !== '#') window.location.href = url;
+});
+
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const faces = Array.from({ length: FACES }, (_, i) => {
