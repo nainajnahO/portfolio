@@ -849,7 +849,7 @@ body {
     flex: none;
   }
   html[data-wheel-placed] .wheel__preview .card {
-    width: min(100%, calc(320px * var(--wheel-scale) * 1.3));   /* SHRUNK — TUNABLE */
+    width: 100%;   /* full column/stage width (= #work's 250·scale·2.4) */
   }
 
   /* Controls: glued directly below the stage, centred and sized to content so the
