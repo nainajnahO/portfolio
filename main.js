@@ -233,16 +233,21 @@ document.querySelector('.js-next').addEventListener('click', () => {
   animateTo(Math.round(angle / STEP) * STEP + STEP);
 });
 
-// Shrink the whole wheel uniformly so the fixed 16:9 enlarged card above it stays
-// fully visible with as little page scroll as possible. The scale drives both the
-// CSS geometry (--wheel-scale → stage/perspective/ring/face sizes) and the JS depth
-// (RADIUS), so the 3D registration stays exact. The card is a fixed-height element
-// now, so we MEASURE it rather than guess: whatever viewport is left after the fixed
-// chrome and the card itself sizes the 320px base stage. Floored so the wheel never
-// shrinks to a token — past the floor the card wins and the page scrolls (see the
-// .wheel min-height in styles.css).
+// Size the wheel so its landscape golden (φ:1) front face fills the inner golden
+// rectangle of the design's golden-ratio reference, and tracks the window on resize.
+// The scale drives both the CSS geometry (--wheel-scale → stage/perspective/ring/
+// face sizes) and the JS depth (RADIUS), so the 3D registration stays exact.
+//   goldenScale = FACE_FRACTION * (contain-fit golden rect width) / face base width
+// That golden target is then CAPPED by the room the kept enlarged preview card needs
+// (previewFit), so the preview never clips / the page never scrolls. Floored so the
+// wheel never shrinks to a token; ceilinged so the face can grow past its base on
+// large monitors instead of freezing (the old Math.min(1, …) did the latter).
 const WHEEL_STAGE_BASE = 320;
 const WHEEL_MIN_SCALE = 0.62;
+const WHEEL_MAX_SCALE = 1.6;      // let the front face grow past its base on big screens
+const PHI = 1.6180339887498949;   // golden ratio (mirrors styles.css --phi)
+const WHEEL_FACE_BASE = 250;      // mirrors the .face width base in styles.css (like BASE_RADIUS ↔ 520)
+const FACE_FRACTION = 0.174;      // size knob: front-face width ÷ contain-fit golden-rect width
 // Fixed vertical costs outside the stage and the measured card: hero v-padding (80)
 // + the --block-top shared-top offset (90) + preview padding (8) + controls (~48).
 const WHEEL_CHROME = 226;
@@ -252,9 +257,14 @@ function applyWheelScale() {
   // it; re-fitting then would fight the sandbox's transform. hasAttribute (not
   // dataset.arrange, which is falsy when empty) guards it. No-op in production.
   if (document.documentElement.hasAttribute('data-arrange')) return;
+  // Contain-fit a φ:1 golden rectangle to the viewport (touches top/bottom or the
+  // sides, whichever first), then set the front face to a fixed fraction of its width.
+  const rectW = Math.min(window.innerWidth, window.innerHeight * PHI);
+  const goldenScale = (FACE_FRACTION * rectW) / WHEEL_FACE_BASE;
+  // Cap by the room the kept enlarged preview card needs, so it never clips / scrolls.
   const cardH = previewCard.getBoundingClientRect().height;
-  const fit = (window.innerHeight - WHEEL_CHROME - cardH) / WHEEL_STAGE_BASE;
-  const scale = Math.max(WHEEL_MIN_SCALE, Math.min(1, fit));
+  const previewFit = (window.innerHeight - WHEEL_CHROME - cardH) / WHEEL_STAGE_BASE;
+  const scale = Math.max(WHEEL_MIN_SCALE, Math.min(WHEEL_MAX_SCALE, Math.min(goldenScale, previewFit)));
   document.documentElement.style.setProperty('--wheel-scale', scale.toFixed(4));
   RADIUS = BASE_RADIUS * scale;
 }

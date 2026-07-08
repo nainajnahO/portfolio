@@ -134,6 +134,10 @@
      lowers it on short viewports and keeps the JS RADIUS in lockstep with the
      ring depth below, so the 3D front-card registration stays exact. */
   --wheel-scale: 1;
+
+  /* Golden ratio. Wheel faces are landscape φ:1 rectangles — the golden overlay in
+     the design sandbox (index.html?sandbox) is the reference this composition targets. */
+  --phi: 1.6180339887498949;
 }
 
 /* ------------------------------------------------------------------ */
@@ -410,14 +414,16 @@ body {
   transform: translateZ(calc(-520px * var(--wheel-scale)));
 }
 
-/* Front-card registration frame */
+/* Front-card registration frame. Centred on the golden face and matched to its
+   height (250/φ * scale) so the side rails bracket the card instead of overrunning
+   the taller stage. */
 .wheel__frame {
   position: absolute;
   left: 50%;
-  top: 4px;
-  bottom: 4px;
+  top: 50%;
   width: calc(274px * var(--wheel-scale));
-  transform: translateX(-50%);
+  height: calc(250px / var(--phi) * var(--wheel-scale));
+  transform: translate(-50%, -50%);
   border-left: 1px solid rgba(255, 255, 255, 0.55);
   border-right: 1px solid rgba(255, 255, 255, 0.55);
   pointer-events: none;
@@ -434,21 +440,23 @@ body {
   color: inherit;
 }
 
-/* Wheel faces are compact previews — screenshot, meta and title only. The blurb
-   and CTA are reserved for the enlarged card above the wheel (which is a bare
-   .card clone with no .face ancestor, so it keeps them). */
+/* Wheel faces are compact, text-only cards — meta and title only. The screenshot,
+   blurb and CTA are all hidden here; the blurb + CTA are reserved for the enlarged
+   card above the wheel (a bare .card clone with no .face ancestor, so it keeps
+   them and its screenshot). */
+.face .card__shot,
 .face .card__blurb,
 .face .card__cta { display: none; }
 
-/* Scale the face card's height with the wheel (its width scales via .face). The
-   shared `.card { height: 262px }` stays the base for the enlarged preview clone,
-   which is NOT scaled — it fills whatever room the shrunk wheel frees up. */
-.face .card { height: calc(262px * var(--wheel-scale)); }
+/* Faces are landscape golden rectangles (φ:1). Height derives from the face width
+   (calc(250px * var(--wheel-scale)) on .face) via aspect-ratio; height:auto
+   overrides the base `.card { height: 262px }`, which stays for the enlarged
+   preview clone (NOT a .face, so it keeps its own content-sized height). */
+.face .card { aspect-ratio: var(--phi); height: auto; }
 
-/* With the text trimmed, let the screenshot grow to fill the freed space so the
-   face reads as an image-forward thumbnail with the meta + title as a caption. */
-.face .card__shot { flex: 1 1 auto; }
-.face .card__body { flex: 0 0 auto; }
+/* The body is the whole card now (base .card__body { flex: 1 }); centre the
+   meta + title in the shorter golden card. */
+.face .card__body { justify-content: center; }
 
 .wheel__controls {
   display: flex;
