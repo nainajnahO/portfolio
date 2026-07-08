@@ -62,6 +62,9 @@
         <button class="sbx-btn" data-act="fib">Spiral: off</button>
         <button class="sbx-btn" data-act="copy">Copy layout</button>
       </div>
+      <div class="sbx-field" title="Which nested golden rectangle the wheel's front face fills (even = landscape). Live-drives the real page.">
+        <span>Depth</span><input type="range" data-act="depth" min="2" max="8" step="2" value="4"><output>R4</output>
+      </div>
       <div class="sbx-fib-controls">
         <div class="sbx-field"><span>Scale</span><input type="range" data-fib="f" min="0.2" max="3" step="0.01" value="1"><output>1.00</output></div>
         <div class="sbx-field"><span>Rotate</span><input type="range" data-fib="deg" min="0" max="360" step="1" value="0"><output>0&deg;</output></div>
@@ -87,6 +90,15 @@
     els.arrange.addEventListener('click', () => (arranging ? exitArrange() : enterArrange()));
     els.fib.addEventListener('click', () => { fib.on = !fib.on; applyFib(); updateToolbar(); });
     toolbar.querySelector('[data-act="copy"]').addEventListener('click', exportLayout);
+
+    // Wheel-depth tuner: sets html.dataset.wheelDepth (read by main.js placeWheel) and
+    // re-fits the real page live. Even steps only → landscape residual matching the face.
+    const depthInput = toolbar.querySelector('[data-act="depth"]');
+    depthInput.addEventListener('input', () => {
+      html.dataset.wheelDepth = depthInput.value;
+      depthInput.nextElementSibling.textContent = 'R' + depthInput.value;
+      dispatchEvent(new Event('resize'));
+    });
     toolbar.querySelector('[data-act="rot90"]').addEventListener('click', () => {
       fib.deg = (fib.deg + 90) % 360;
       const rng = toolbar.querySelector('[data-fib="deg"]');

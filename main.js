@@ -233,55 +233,99 @@ document.querySelector('.js-next').addEventListener('click', () => {
   animateTo(Math.round(angle / STEP) * STEP + STEP);
 });
 
-// Size the wheel so its landscape golden (φ:1) front face fills the inner golden
-// rectangle of the design's golden-ratio reference, and tracks the window on resize.
-// The scale drives both the CSS geometry (--wheel-scale → stage/perspective/ring/
-// face sizes) and the JS depth (RADIUS), so the 3D registration stays exact.
-//   goldenScale = FACE_FRACTION * (contain-fit golden rect width) / face base width
-// That golden target is then CAPPED by the room the kept enlarged preview card needs
-// (previewFit), so the preview never clips / the page never scrolls. Floored so the
-// wheel never shrinks to a token; ceilinged so the face can grow past its base on
-// large monitors instead of freezing (the old Math.min(1, …) did the latter).
+// Place the wheel's landscape golden (φ:1) front face on the golden "eye" — the inner
+// residual rectangle of the contain-fit golden spiral — and re-place it on resize.
+// DESKTOP (>860px): the whole #work is fixed-positioned and centred on the eye via
+//   --wheel-x/--wheel-y (styles.css html[data-wheel-placed]); its size comes from the
+//   residual width through --wheel-scale, which also drives the CSS geometry (stage/
+//   perspective/ring/face) and the JS depth (RADIUS) so the 3D registration stays exact.
+// MOBILE (≤860px): keep the old stacked-column sizing verbatim (goldenScale capped by
+//   the room the enlarged preview needs, so it never clips / the page never scrolls).
 const WHEEL_STAGE_BASE = 320;
 const WHEEL_MIN_SCALE = 0.62;
 const WHEEL_MAX_SCALE = 1.6;      // let the front face grow past its base on big screens
 const PHI = 1.6180339887498949;   // golden ratio (mirrors styles.css --phi)
 const WHEEL_FACE_BASE = 250;      // mirrors the .face width base in styles.css (like BASE_RADIUS ↔ 520)
-const FACE_FRACTION = 0.174;      // size knob: front-face width ÷ contain-fit golden-rect width
-// Fixed vertical costs outside the stage and the measured card: hero v-padding (80)
-// + the --block-top shared-top offset (90) + preview padding (8) + controls (~48).
+const FACE_FRACTION = 0.174;      // mobile size knob: front-face width ÷ contain-fit golden-rect width
+// Fixed vertical costs outside the stage and the measured card (mobile branch only):
+// hero v-padding (80) + --block-top (90) + preview padding (8) + controls (~48).
 const WHEEL_CHROME = 226;
+const WHEEL_DEPTH = 4;            // desktop target = residual R4 (even ⇒ landscape). The sandbox
+                                  // overrides this live via html.dataset.wheelDepth (R2/R4/R6/R8).
+const html = document.documentElement;
+const desktopMQ = matchMedia('(min-width: 861px)');
 
-function applyWheelScale() {
-  // The design sandbox (index.html?sandbox) freezes the wheel while you drag/scale
-  // it; re-fitting then would fight the sandbox's transform. hasAttribute (not
-  // dataset.arrange, which is falsy when empty) guards it. No-op in production.
-  if (document.documentElement.hasAttribute('data-arrange')) return;
-  // Contain-fit a φ:1 golden rectangle to the viewport (touches top/bottom or the
-  // sides, whichever first), then set the front face to a fixed fraction of its width.
+// The nested residual rectangle left after `depth` whirling-square cuts of a φ:1
+// rectangle — same LEFT/TOP/RIGHT/BOTTOM cut order as the sandbox's goldenSpiral().
+// Returns the residual's centre (cx, cy) and width (fw) as fractions of the whole
+// rect's W and H. Even depths are landscape φ:1 (matching the face); odd are portrait.
+function residualRect(depth) {
+  let x = 0, y = 0, w = PHI, h = 1;   // rect is φ wide × 1 tall
+  for (let i = 0; i < depth; i++) {
+    const s = Math.min(w, h);
+    switch (i % 4) {
+      case 0: x += s; w -= s; break;   // remove the square off the LEFT
+      case 1: y += s; h -= s; break;   // ...the TOP
+      case 2:         w -= s; break;   // ...the RIGHT
+      case 3:         h -= s; break;   // ...the BOTTOM
+    }
+  }
+  return { cx: (x + w / 2) / PHI, cy: y + h / 2, fw: w / PHI };
+}
+
+function placeWheel() {
+  // The design sandbox (index.html?sandbox) freezes the wheel while you drag/scale it;
+  // re-placing then would fight the sandbox's pin. hasAttribute (not dataset.arrange,
+  // which is falsy when empty) guards it. No-op for arrange mode.
+  if (html.hasAttribute('data-arrange')) return;
+
+  if (desktopMQ.matches) {
+    // Contain-fit a φ:1 golden rectangle to the viewport (touches top/bottom or the
+    // sides, whichever first), centred. The front face fills residual R_depth of it.
+    const W = Math.min(window.innerWidth, window.innerHeight * PHI);
+    const H = W / PHI;
+    const ox = (window.innerWidth - W) / 2, oy = (window.innerHeight - H) / 2;
+    const depth = parseInt(html.dataset.wheelDepth, 10) || WHEEL_DEPTH;
+    const { cx, cy, fw } = residualRect(depth);
+    // Face width == residual width. The front face nets to z=0 (ring at -520*scale,
+    // face at +520*scale) so perspective magnification is 1 → CSS width == on-screen
+    // width. Hence scale = residualWidth / faceBase.
+    const scale = Math.max(WHEEL_MIN_SCALE, Math.min(WHEEL_MAX_SCALE, (fw * W) / WHEEL_FACE_BASE));
+    html.style.setProperty('--wheel-scale', scale.toFixed(4));
+    html.style.setProperty('--wheel-x', (ox + cx * W).toFixed(2) + 'px');
+    html.style.setProperty('--wheel-y', (oy + cy * H).toFixed(2) + 'px');
+    html.setAttribute('data-wheel-placed', '');   // flip CSS to the fixed-eye layout
+    RADIUS = BASE_RADIUS * scale;
+    return;
+  }
+
+  // Mobile (≤860px): in-flow stacked layout — keep today's sizing verbatim.
+  html.removeAttribute('data-wheel-placed');
+  html.style.removeProperty('--wheel-x');
+  html.style.removeProperty('--wheel-y');
   const rectW = Math.min(window.innerWidth, window.innerHeight * PHI);
   const goldenScale = (FACE_FRACTION * rectW) / WHEEL_FACE_BASE;
-  // Cap by the room the kept enlarged preview card needs, so it never clips / scrolls.
   const cardH = previewCard.getBoundingClientRect().height;
   const previewFit = (window.innerHeight - WHEEL_CHROME - cardH) / WHEEL_STAGE_BASE;
   const scale = Math.max(WHEEL_MIN_SCALE, Math.min(WHEEL_MAX_SCALE, Math.min(goldenScale, previewFit)));
-  document.documentElement.style.setProperty('--wheel-scale', scale.toFixed(4));
+  html.style.setProperty('--wheel-scale', scale.toFixed(4));
   RADIUS = BASE_RADIUS * scale;
 }
 
-// Fill the enlarged card first so applyWheelScale() measures its real height, then
-// size the wheel to it and lay out the faces at the resulting depth.
+// Fill the enlarged card first (the mobile branch measures its real height), then
+// place + size the wheel and lay out the faces at the resulting depth.
 settlePreview();
-applyWheelScale();
+placeWheel();
 render();
 
-// Re-fit on resize / rotate; render() re-lays the faces at the new depth.
-addEventListener('resize', () => { applyWheelScale(); render(); });
+// Re-place on resize / rotate; render() re-lays the faces at the new depth. resize
+// also fires when crossing the 861px breakpoint, so desktop↔mobile re-branches here.
+addEventListener('resize', () => { placeWheel(); render(); });
 
-// The card's height shifts once the web fonts load (title/blurb reflow); re-measure
-// then so the wheel is sized against the real card, not the fallback-font one.
+// The card's height shifts once the web fonts load (title/blurb reflow); re-place
+// then so the mobile fit is against the real card, not the fallback-font one.
 if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(() => { applyWheelScale(); render(); });
+  document.fonts.ready.then(() => { placeWheel(); render(); });
 }
 
 // Theme control: two native radios select light/dark. Applying = set data-theme on
