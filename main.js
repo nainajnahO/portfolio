@@ -97,13 +97,21 @@ function fillCard(cardEl, p) {
   cardEl.querySelector('.card__cta').textContent = `${p.cta} →`;
 }
 
-// Update the enlarged preview to the settled project. The card is a stable panel:
-// always visible, only its content changes. Called whenever the wheel settles; the
-// screenshots are preloaded, so the swap is instant with no visible load. (It used
-// to tuck away — slide + fade out — on every move and rise back on settle, but with
-// real screenshots that read as the card "reloading" and left a gap mid-spin.)
+// Reveal the enlarged preview on the settled project: swap content (while it's
+// still tucked/hidden) then rise it back up. Called only when the wheel settles,
+// and every motion tucks the card first, so this is where "show" lives. The
+// screenshots are preloaded (above), so the swap happens off-screen and the card
+// rises already fully painted — no image loading in as it appears.
 function settlePreview() {
   fillCard(previewCard, projects[frontActiveIdx()]);
+  previewCard.classList.remove('is-tucked');
+}
+
+// Tuck the card away the instant the wheel starts moving; it stays hidden until
+// the next settle re-reveals it. The CSS transition does the slide + fade.
+function hidePreview() {
+  if (reducedMotion) return;               // reduced motion: never hide, just swap on settle
+  previewCard.classList.add('is-tucked');  // idempotent: re-adding an existing class is a no-op
 }
 
 function render() {
@@ -143,6 +151,7 @@ function animateTo(target) {
     settlePreview();
     return;
   }
+  if (Math.abs(d) > 0.5) hidePreview();  // ‹ ›, side-card, drag-release snap → tuck before spinning
   if (reducedMotion) {
     angle = target;
     render();
@@ -204,6 +213,7 @@ stage.addEventListener('pointermove', (e) => {
   if (!drag.captured && moved > 5) {
     stage.setPointerCapture(drag.pointerId);
     drag.captured = true;
+    hidePreview();   // it's a real drag now → tuck the card
   }
   const dAngle = -dx * 0.28;
   drag.v = 0.7 * dAngle + 0.3 * drag.v;
@@ -239,6 +249,7 @@ stage.addEventListener('wheel', (e) => {
   if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
   e.preventDefault();
   cancelAnim();
+  hidePreview();   // trackpad spin → tuck; the 140ms debounce re-reveals on settle
   angle += e.deltaX * 0.35;
   render();
   clearTimeout(wheelTimer);
