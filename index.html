@@ -19,22 +19,7 @@
       document.documentElement.dataset.crt = localStorage.getItem('crt') === 'off' ? 'off' : 'on';
     })();
   </script>
-  <script>
-    // Design sandbox loader. Only when the page is opened with ?sandbox does this
-    // pull in the sandbox chrome (drag/scale the blocks, Fibonacci overlay). A
-    // normal visit injects nothing and issues zero extra requests, so the live
-    // page is byte-identical. Same "tiny guarded head script" pattern as above.
-    if (new URLSearchParams(location.search).has('sandbox')) {
-      const css = document.createElement('link');
-      css.rel = 'stylesheet';
-      css.href = 'sandbox.css?v=4';
-      document.head.append(css);
-      const js = document.createElement('script');
-      js.src = 'sandbox.js?v=5';
-      document.head.append(js);
-    }
-  </script>
-  <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="styles.css?v=27">
 </head>
 <body>
 
@@ -127,6 +112,6 @@
   <div class="crt-glass"   aria-hidden="true"></div>
   <div class="crt-flicker" aria-hidden="true"></div>
 
-  <script src="main.js?v=16" defer></script>
+  <script src="main.js?v=17" defer></script>
 </body>
 </html>

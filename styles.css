@@ -135,8 +135,8 @@
      ring depth below, so the 3D front-card registration stays exact. */
   --wheel-scale: 1;
 
-  /* Golden ratio. Wheel faces are landscape φ:1 rectangles — the golden overlay in
-     the design sandbox (index.html?sandbox) is the reference this composition targets. */
+  /* Golden ratio. Wheel faces are landscape φ:1 rectangles, and the whole layout is
+     composed against the golden spiral this ratio generates. */
   --phi: 1.6180339887498949;
 
   /* Viewport point the wheel's front face is centred on (the golden "eye"). main.js
@@ -146,10 +146,10 @@
   --wheel-y: 50vh;
 
   /* Hero copy's target: the MIRROR of the wheel's eye. Flipping the golden spiral
-     H+V (see the sandbox) reflects the eye through the rect centre, so the copy
-     sits at the diagonally-opposite eye (upper-left) and scales in lockstep with
-     the wheel. main.js overwrites these on desktop; fallbacks keep the calc()s
-     valid before it runs. Consumed only under html[data-hero-placed]. */
+     H+V reflects the eye through the rect centre, so the copy sits at the
+     diagonally-opposite eye (upper-left) and scales in lockstep with the wheel.
+     main.js overwrites these on desktop; fallbacks keep the calc()s valid before
+     it runs. Consumed only under html[data-hero-placed]. */
   --hero-x: 30vw;
   --hero-y: 30vh;
   --hero-scale: 1;

@@ -243,8 +243,7 @@ document.querySelector('.js-next').addEventListener('click', () => {
 // perspective/ring/face) and the JS depth (RADIUS) so the 3D registration stays exact.
 const PHI = 1.6180339887498949;   // golden ratio (mirrors styles.css --phi)
 const WHEEL_FACE_BASE = 250;      // mirrors the .face width base in styles.css (like BASE_RADIUS ↔ 520)
-const WHEEL_DEPTH = 4;            // target = residual R4 (even ⇒ landscape). The sandbox
-                                  // overrides this live via html.dataset.wheelDepth (R2/R4/R6/R8).
+const WHEEL_DEPTH = 4;            // residual depth: R4 (even ⇒ a landscape φ:1 front face)
 // Hero copy sits at the MIRROR of the wheel's eye (flipping the spiral H+V reflects
 // the eye through the rect centre) and scales in lockstep with the wheel. Its scale
 // is the contain-fit width ÷ HERO_REF_W — the width at which the desktop copy's
@@ -256,7 +255,7 @@ const PREVIEW_GAP = 16;          // TUNABLE: px between the card's bottom and th
 const html = document.documentElement;
 
 // The nested residual rectangle left after `depth` whirling-square cuts of a φ:1
-// rectangle — same LEFT/TOP/RIGHT/BOTTOM cut order as the sandbox's goldenSpiral().
+// rectangle, cutting squares off the LEFT, TOP, RIGHT, then BOTTOM in turn.
 // Returns the residual's centre (cx, cy) and width (fw) as fractions of the whole
 // rect's W and H. Even depths are landscape φ:1 (matching the face); odd are portrait.
 function residualRect(depth) {
@@ -274,17 +273,12 @@ function residualRect(depth) {
 }
 
 function placeWheel() {
-  // The design sandbox (index.html?sandbox) freezes the wheel while you drag/scale it;
-  // re-placing then would fight the sandbox's pin. hasAttribute (not dataset.arrange,
-  // which is falsy when empty) guards it. No-op for arrange mode.
-  if (html.hasAttribute('data-arrange')) return;
-
   // Contain-fit a φ:1 golden rectangle to the viewport (touches top/bottom or the
   // sides, whichever first), centred. The front face fills residual R_depth of it.
   const W = Math.min(window.innerWidth, window.innerHeight * PHI);
   const H = W / PHI;
   const ox = (window.innerWidth - W) / 2, oy = (window.innerHeight - H) / 2;
-  const depth = parseInt(html.dataset.wheelDepth, 10) || WHEEL_DEPTH;
+  const depth = WHEEL_DEPTH;
   const { cx, cy, fw } = residualRect(depth);
   // Face width == residual width. The front face nets to z=0 (ring at -520*scale,
   // face at +520*scale) so perspective magnification is 1 → CSS width == on-screen
