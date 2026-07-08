@@ -252,6 +252,13 @@ const FACE_FRACTION = 0.174;      // mobile size knob: front-face width ÷ conta
 const WHEEL_CHROME = 226;
 const WHEEL_DEPTH = 4;            // desktop target = residual R4 (even ⇒ landscape). The sandbox
                                   // overrides this live via html.dataset.wheelDepth (R2/R4/R6/R8).
+// Hero copy sits at the MIRROR of the wheel's eye (flipping the spiral H+V reflects
+// the eye through the rect centre) and scales in lockstep with the wheel. Its scale
+// is the contain-fit width ÷ HERO_REF_W — the width at which the desktop copy's
+// authored px sizes read at 1× (≈ a 1512×897 laptop, where contain W ≈ 1451).
+const HERO_REF_W = 1451;         // TUNABLE: contain-fit width where the copy is 1×
+const HERO_MIN_SCALE = 0.72;
+const HERO_MAX_SCALE = 1.5;
 const html = document.documentElement;
 const desktopMQ = matchMedia('(min-width: 861px)');
 
@@ -296,13 +303,24 @@ function placeWheel() {
     html.style.setProperty('--wheel-y', (oy + cy * H).toFixed(2) + 'px');
     html.setAttribute('data-wheel-placed', '');   // flip CSS to the fixed-eye layout
     RADIUS = BASE_RADIUS * scale;
+
+    // Hero copy → the diagonally-opposite (mirror) eye, scaled with the viewport.
+    const heroScale = Math.max(HERO_MIN_SCALE, Math.min(HERO_MAX_SCALE, W / HERO_REF_W));
+    html.style.setProperty('--hero-scale', heroScale.toFixed(4));
+    html.style.setProperty('--hero-x', (ox + (1 - cx) * W).toFixed(2) + 'px');
+    html.style.setProperty('--hero-y', (oy + (1 - cy) * H).toFixed(2) + 'px');
+    html.setAttribute('data-hero-placed', '');
     return;
   }
 
   // Mobile (≤860px): in-flow stacked layout — keep today's sizing verbatim.
   html.removeAttribute('data-wheel-placed');
+  html.removeAttribute('data-hero-placed');
   html.style.removeProperty('--wheel-x');
   html.style.removeProperty('--wheel-y');
+  html.style.removeProperty('--hero-x');
+  html.style.removeProperty('--hero-y');
+  html.style.removeProperty('--hero-scale');
   const rectW = Math.min(window.innerWidth, window.innerHeight * PHI);
   const goldenScale = (FACE_FRACTION * rectW) / WHEEL_FACE_BASE;
   const cardH = previewCard.getBoundingClientRect().height;

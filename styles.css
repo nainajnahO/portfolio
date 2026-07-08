@@ -144,6 +144,15 @@
      valid before it runs. Consumed only under html[data-wheel-placed] (see below). */
   --wheel-x: 50vw;
   --wheel-y: 50vh;
+
+  /* Hero copy's target: the MIRROR of the wheel's eye. Flipping the golden spiral
+     H+V (see the sandbox) reflects the eye through the rect centre, so the copy
+     sits at the diagonally-opposite eye (upper-left) and scales in lockstep with
+     the wheel. main.js overwrites these on desktop; fallbacks keep the calc()s
+     valid before it runs. Consumed only under html[data-hero-placed]. */
+  --hero-x: 30vw;
+  --hero-y: 30vh;
+  --hero-scale: 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -836,6 +845,19 @@ body {
     min-height: 0;                                    /* override .wheel min-height so #work == stage */
     margin: 0;
     transform: translate(-50%, -50%);
+  }
+
+  /* Hero copy lifted onto the mirror eye and scaled with the viewport (the whole
+     block — type + padding — via one transform; the desktop copy uses fixed px
+     sizes, so this is the sole viewport response). translate(-50%,-50%) keeps its
+     centre on the eye for any scale; the 2D transform is flat (no 3D here). */
+  html[data-hero-placed] .hero__copy {
+    position: fixed;
+    left: var(--hero-x);
+    top: var(--hero-y);
+    margin: 0;
+    transform: translate(-50%, -50%) scale(var(--hero-scale));
+    transform-origin: center;
   }
 
   /* Enlarged preview: shrunk and glued directly above the stage (out of flow, so its
