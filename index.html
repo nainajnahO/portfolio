@@ -19,7 +19,18 @@
       document.documentElement.dataset.crt = localStorage.getItem('crt') === 'off' ? 'off' : 'on';
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=32">
+  <script>
+    // Golden-spiral overlay loader. Only when the page is opened with ?spiral
+    // does this pull in the reference overlay + its HUD (spiral.js injects its
+    // own styles). A normal visit injects nothing and issues zero extra
+    // requests, so the live page is byte-identical. Dev tool, not visitor-facing.
+    if (new URLSearchParams(location.search).has('spiral')) {
+      const js = document.createElement('script');
+      js.src = 'spiral.js?v=4';
+      document.head.append(js);
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css?v=33">
 </head>
 <body>
 
@@ -115,6 +126,6 @@
   <div class="crt-glass"   aria-hidden="true"></div>
   <div class="crt-flicker" aria-hidden="true"></div>
 
-  <script src="main.js?v=23" defer></script>
+  <script src="main.js?v=24" defer></script>
 </body>
 </html>

@@ -662,14 +662,18 @@ body {
 /* ------------------------------------------------------------------ */
 .controls {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  /* Hug the golden rectangle's top-right corner, tucked a hair inside, instead of
+     the viewport corner — so the stack sits within the spiral's frame and tracks
+     it on resize. main.js --controls-x/-y are the rect's margins (ox/oy); the
+     fallbacks match a typical desktop inset until placeWheel() first runs. */
+  top: calc(var(--controls-y, 20px) + 14px);
+  right: calc(var(--controls-x, 20px) + 14px);
   z-index: 50;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
-  /* Scale the whole theme/CRT stack with the layout, pinned to the top-right corner. */
+  /* Scale the whole theme/CRT stack with the layout, anchored to that corner. */
   transform: scale(var(--wheel-scale));
   transform-origin: top right;
 }

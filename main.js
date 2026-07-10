@@ -319,6 +319,13 @@ function placeWheel() {
   html.setAttribute('data-wheel-placed', '');   // flip CSS to the fixed-eye layout
   RADIUS = BASE_RADIUS * scale;
 
+  // Top-right controls hug the golden rectangle's top-right corner (not the
+  // viewport corner), so they sit inside the spiral's frame and track it. ox/oy
+  // are the rect's margins; the rect is centred, so ox is also its distance from
+  // the viewport's right edge — hence the controls' right/top insets are ox/oy.
+  html.style.setProperty('--controls-x', ox.toFixed(2) + 'px');
+  html.style.setProperty('--controls-y', oy.toFixed(2) + 'px');
+
   // Hero copy → the diagonally-opposite (mirror) eye, scaled with the viewport (no floor/cap).
   const heroScale = W / HERO_REF_W;
   html.style.setProperty('--hero-scale', heroScale.toFixed(4));
