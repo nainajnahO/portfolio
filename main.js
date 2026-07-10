@@ -33,7 +33,6 @@ const workEl = document.getElementById('work');       // the whole wheel unit (p
 const heroCopy = document.querySelector('.hero__copy');
 const ring = document.querySelector('.js-ring');
 const faceTemplate = document.querySelector('.js-face-template');
-const activeMetaEl = document.querySelector('.js-active-meta');
 const counterEl = document.querySelector('.js-counter');
 
 // The enlarged preview above the wheel: a clone of just the .card (no .face
@@ -132,7 +131,6 @@ function render() {
   });
 
   const activeIdx = frontActiveIdx();
-  activeMetaEl.textContent = projects[activeIdx].meta;
   counterEl.textContent = `0${activeIdx + 1} / 0${projects.length}`;
 }
 

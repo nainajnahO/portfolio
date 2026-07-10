@@ -520,7 +520,6 @@ body {
 
 /* The spec's translucent white here tops out below 2:1 contrast on the
    photo; ink-on-glass chips match the buttons and pass AA. */
-.wheel__meta,
 .wheel__counter {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -530,12 +529,6 @@ body {
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-pill);
   padding: 4px 12px;
-}
-
-.wheel__rule {
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.35);
 }
 
 /* ------------------------------------------------------------------ */
