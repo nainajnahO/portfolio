@@ -900,18 +900,32 @@ html[data-wheel-placed] .wheel__preview .card__body {
   flex: 0 0 auto;       /* natural height; the shot takes the extra space */
 }
 
-/* Controls: glued directly below the stage, centred, and scaled as one unit with
-   --wheel-scale (origin at the top-centre attach point) so the buttons/meta/counter
-   shrink and grow in lockstep with the wheel. */
+/* Counter: centred and pulled up to sit just under the front card (the stage is
+   taller than the card, so there's empty lower-stage band to occupy), scaled with
+   --wheel-scale from the top-centre attach point. */
 html[data-wheel-placed] .wheel__controls {
   position: absolute;
-  top: 100%;
+  top: calc(50% + 96px * var(--wheel-scale));   /* just below the front face — TUNABLE */
   left: 50%;
+  margin: 0;
   transform: translateX(-50%) scale(var(--wheel-scale));
   transform-origin: top center;
   width: max-content;
   max-width: 92vw;
 }
+
+/* Prev / next flank the wheel: pinned to #work's left/right edges — which are the
+   neighbour-peek fade line (#work is 250·scale·2.4 wide) — and centred on the card
+   band (#work's box == the stage, centred on the eye). Siblings of .wheel__stage,
+   so its overflow-clip/mask never touches them; z-index above the stage so an arrow
+   click wins over the stage's drag region. Scaled with the wheel like everything else. */
+html[data-wheel-placed] .wheel__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+}
+html[data-wheel-placed] .wheel__nav--prev { left: 0;  transform: translate(-50%, -50%) scale(var(--wheel-scale)); }
+html[data-wheel-placed] .wheel__nav--next { right: 0; transform: translate(50%, -50%) scale(var(--wheel-scale)); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
