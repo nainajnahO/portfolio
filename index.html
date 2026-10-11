@@ -3,145 +3,60 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>nainajnahO — Selected Works</title>
-  <meta name="description" content="Selected works by nainajnahO — iOS, AI, data analysis, and open-source projects.">
-  <meta name="color-scheme" content="light">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f0eee9'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%232b2822'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=4">
+  <title>Gen X — Software Portfolio</title>
+  <meta name="description" content="I make quiet tools for loud problems. A one-page coding portfolio.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%231c3fc4'/%3E%3Ccircle cx='8' cy='8' r='3.5' fill='%23e8f1f5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=1">
 </head>
 <body>
-  <main class="page">
-    <article class="card">
-      <!-- The wash layer tints to the active project's colour. -->
-      <div class="wash js-wash">
 
-        <!-- Left column: the selectable list of works. -->
-        <div class="list-col">
-          <div class="list-head">
-            <h1 class="list-head__title">nainajnahO — selected works</h1>
-            <span class="list-head__years">2022–26</span>
-          </div>
+  <!-- Backdrop artwork -->
+  <div class="backdrop" aria-hidden="true"></div>
 
-          <ul class="list" role="list">
-            <li>
-              <button class="row js-row" type="button"
-                data-name="PureLenz" data-type="iOS app" data-color="#7c6ff0"
-                data-tech="Swift · SwiftUI · Core ML"
-                data-desc="A minimalist iOS camera with tactile manual control over ISO and shutter speed. On-device Core ML learns your style and adapts as you shoot."
-                data-img="images/purelenz.jpg"
-                data-cta="View repo" data-url="https://github.com/nainajnahO/PureLenz">
-                <span class="row__name">PureLenz</span>
-                <span class="row__type">iOS app</span>
-                <span class="row__arrow" aria-hidden="true">↗</span>
-              </button>
-            </li>
-            <li>
-              <button class="row js-row" type="button"
-                data-name="forskapong" data-type="Full-stack" data-color="#cc3f4d"
-                data-tech="React · TypeScript · Supabase · Three.js"
-                data-desc="The live site and tournament engine for Tentafestivalen Beerpong (Uppsala, 2026) — a 3D landing page and venue map up front, with a Swiss-plus-knockout bracket engine, live scoreboard, and admin tooling on Supabase behind it."
-                data-img="images/forskapong.jpg"
-                data-cta="Visit site" data-url="https://rollnsolution.com">
-                <span class="row__name">forskapong</span>
-                <span class="row__type">Full-stack</span>
-                <span class="row__arrow" aria-hidden="true">↗</span>
-              </button>
-            </li>
-            <li>
-              <button class="row js-row" type="button"
-                data-name="Bolånekalkyl" data-type="Tool" data-color="#008080"
-                data-tech="JavaScript · Chart.js · 98.css"
-                data-desc="A calculator for how a Swedish mortgage plays out over decades — change any value and the debt, monthly cost, and total interest update live; compare scenarios side by side and model rate changes at chosen years. Dressed as Windows 98, on purpose."
-                data-img="images/bolanekalkyl.png"
-                data-cta="Open calculator" data-url="https://nainajnaho.github.io/Bolanekalkyl/">
-                <span class="row__name">Bolånekalkyl</span>
-                <span class="row__type">Tool</span>
-                <span class="row__arrow" aria-hidden="true">↗</span>
-              </button>
-            </li>
-            <li>
-              <button class="row js-row" type="button"
-                data-name="rag-knowledge-base" data-type="AI" data-color="#3a9669"
-                data-tech="FastAPI · pgvector · Voyage · Anthropic"
-                data-desc="A retrieval-augmented knowledge base — upload documents, run hybrid search, and chat with answers backed by verifiable citations."
-                data-img="images/rag-knowledge-base.png"
-                data-cta="View repo" data-url="https://github.com/nainajnahO/rag-knowledge-base">
-                <span class="row__name">rag-knowledge-base</span>
-                <span class="row__type">AI</span>
-                <span class="row__arrow" aria-hidden="true">↗</span>
-              </button>
-            </li>
-            <li>
-              <button class="row js-row" type="button"
-                data-name="Dr. Fungi" data-type="AI" data-color="#3a9669"
-                data-tech="Python · Claude API · Gradio"
-                data-desc="A multimodal LLM chatbot built on the Claude API with a Gradio interface — converse over both text and images."
-                data-img="images/dr-fungi.png"
-                data-cta="View repo" data-url="https://github.com/nainajnahO/Dr.-Fungi">
-                <span class="row__name">Dr. Fungi</span>
-                <span class="row__type">AI</span>
-                <span class="row__arrow" aria-hidden="true">↗</span>
-              </button>
-            </li>
-            <li>
-              <button class="row js-row" type="button"
-                data-name="trump-tweet-analysis" data-type="Data" data-color="#ab7d43"
-                data-tech="Python · Jupyter · scikit-learn"
-                data-desc="A data study of Trump's tweets — engagement patterns, temporal trends, and clustering, told through a set of visualisations."
-                data-img="images/trump-tweet-analysis.png"
-                data-cta="View repo" data-url="https://github.com/nainajnahO/trump-tweet-analysis">
-                <span class="row__name">trump-tweet-analysis</span>
-                <span class="row__type">Data</span>
-                <span class="row__arrow" aria-hidden="true">↗</span>
-              </button>
-            </li>
-            <li>
-              <button class="row js-row" type="button"
-                data-name="Rhoa" data-type="Library" data-color="#8b93ab"
-                data-tech="Python · pandas · NumPy"
-                data-desc="A pandas DataFrame extension that adds technical-analysis accessors — indicators and signals, straight on your dataframe."
-                data-img="images/rhoa.png"
-                data-cta="View repo" data-url="https://github.com/nainajnahO/Rhoa">
-                <span class="row__name">Rhoa</span>
-                <span class="row__type">Library</span>
-                <span class="row__arrow" aria-hidden="true">↗</span>
-              </button>
-            </li>
-            <li>
-              <button class="row js-row" type="button"
-                data-name="WordleHaskell" data-type="Game" data-color="#4f8ef7"
-                data-tech="Haskell"
-                data-desc="A terminal Wordle clone written in Haskell for a Program Design & Data Structures course."
-                data-img="images/wordlehaskell.png"
-                data-cta="View repo" data-url="https://github.com/nainajnahO/WordleHaskell">
-                <span class="row__name">WordleHaskell</span>
-                <span class="row__type">Game</span>
-                <span class="row__arrow" aria-hidden="true">↗</span>
-              </button>
-            </li>
-          </ul>
-        </div>
+  <main id="top" class="page">
+    <header class="hero">
 
-        <!-- Right column: quick look at the active project. Defaults to the first
-             project so the panel is meaningful before/without JavaScript. -->
-        <aside class="panel" aria-label="Selected project details">
-          <div class="panel__shot has-img js-shot-box" style="--shot-img:url('images/purelenz.jpg')">
-            <img class="panel__shot-img js-shot-img" src="images/purelenz.jpg" alt="PureLenz — in-app screenshot">
-            <span class="panel__shot-label js-shot">[ PureLenz — screenshot ]</span>
-          </div>
-          <h2 class="panel__name js-name">PureLenz</h2>
-          <p class="panel__meta js-meta">iOS app · Swift · SwiftUI · Core ML</p>
-          <p class="panel__desc js-desc">A minimalist iOS camera with tactile manual control over ISO and shutter speed. On-device Core ML learns your style and adapts as you shoot.</p>
-          <a class="panel__cta js-cta" href="https://github.com/nainajnahO/PureLenz">
-            <span class="js-cta-text">View repo</span>
-            <span aria-hidden="true">↗</span>
-          </a>
-        </aside>
-
+      <div class="hero__copy">
+        <div class="hero__label">Young Adult / Software</div>
+        <h1 class="hero__title">Gen X</h1>
+        <div class="hero__motif">Contemporary Soft Club</div>
+        <p class="hero__blurb">I make quiet tools for loud problems. Three of them live to the right.</p>
       </div>
-    </article>
+
+      <div id="work" class="wheel">
+        <div class="wheel__stage js-stage">
+          <div class="wheel__ring js-ring">
+            <!-- 12 wheel faces cloned from the template below by main.js -->
+          </div>
+          <div class="wheel__frame" aria-hidden="true"></div>
+        </div>
+        <div class="wheel__controls">
+          <button class="wheel__btn js-prev" aria-label="Previous project">‹</button>
+          <span class="wheel__meta js-active-meta" aria-live="polite"></span>
+          <div class="wheel__rule"></div>
+          <span class="wheel__counter js-counter"></span>
+          <button class="wheel__btn js-next" aria-label="Next project">›</button>
+        </div>
+      </div>
+
+      <div class="hero__glyphs" aria-hidden="true">JQGL8F0IVKW3&middot;HGRD0Y154LQ9&middot;WERF4/C0ELI7H1&gt;8L93&middot;KEOG8/0IJIH1T4</div>
+    </header>
   </main>
 
-  <script src="main.js?v=4" defer></script>
+  <template class="js-face-template">
+    <a class="face" href="#" draggable="false">
+      <div class="card">
+        <div class="card__shot">[ SCREENSHOT ]<div class="card__scanlines" aria-hidden="true"></div></div>
+        <div class="card__body">
+          <span class="card__meta"></span>
+          <h3 class="card__title"></h3>
+          <p class="card__blurb"></p>
+          <span class="card__cta">View project &rarr;</span>
+        </div>
+      </div>
+    </a>
+  </template>
+
+  <script src="main.js?v=1" defer></script>
 </body>
 </html>
