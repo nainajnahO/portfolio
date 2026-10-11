@@ -1,6 +1,6 @@
-// Golden-spiral reference overlay — dev/design tool, always loaded from
-// index.html (no URL flag). Defaults visible; press S to hide it (that choice
-// persists per browser via localStorage).
+// Golden-spiral reference overlay — a visitor-facing easter egg, always loaded
+// from index.html. Hidden by default; a small hint in the golden rectangle's
+// bottom-left corner tells keyboard users to press S to reveal it.
 //
 // Unlike the old draggable sandbox spiral, this one is LOCKED to the page: it is
 // drawn from the SAME contain-fit golden rectangle main.js composes the layout
@@ -8,7 +8,7 @@
 // reflects it about the page centre — H+V lands the eye on the hero copy.
 // Palette matches the original sandbox overlay: pink squares, gold spiral line.
 //
-// Keyboard-only (no on-screen HUD):
+// Keyboard-only (the corner hint lists the keys, and only on hover-capable devices):
 //   S        — toggle the overlay on/off
 //   H / V    — mirror the arrangement horizontally / vertically (replace)
 //   ⇧H / ⇧V  — OVERLAY a mirrored copy on top (stack up to the 4 quadrant eyes)
@@ -65,7 +65,7 @@
   // `orientations` is the set of mirror states currently shown, each {sx, sy}
   // with sx/sy ∈ {1,-1}. One spiral is drawn per orientation. There are only 4
   // possible, so the stack tops out at the full four-fold golden rosette.
-  let on = true;
+  let on = false;
   let orientations = [{ sx: 1, sy: 1 }];
 
   const keyOf = (o) => `${o.sx},${o.sy}`;
@@ -112,9 +112,18 @@
     }
   }
 
-  function apply() { overlay.style.display = on ? '' : 'none'; }
+  // Corner hint: when the overlay is off it only teases the S key; once it's on
+  // it lists the mirror keys too (they do nothing while it's hidden).
+  const hint = document.createElement('div');
+  hint.className = 'sp-hint';
+  hint.setAttribute('aria-hidden', 'true');
 
-  // ---- keyboard control (no HUD) ----
+  function apply() {
+    overlay.style.display = on ? '' : 'none';
+    hint.textContent = on ? 'S hide · H/V mirror · ⇧H/⇧V stack' : 'Press S · golden spiral';
+  }
+
+  // ---- keyboard control ----
   //   H / V   → reflect all, REPLACE (flip the arrangement)
   //   ⇧H / ⇧V → reflect all, UNION (overlay a mirrored copy)
   addEventListener('keydown', (e) => {
@@ -132,6 +141,8 @@
   // Palette mirrors the original sandbox overlay: pink whirling squares, gold
   // spiral line, both non-scaling so stroke weight stays constant. Always full
   // opacity (no fade). z 900 keeps it above the CRT layers as a crisp reference.
+  // The hint mirrors the top-right .controls: same golden-rect inset (main.js
+  // --controls-x/-y), label type and z 50, so the CRT layers texture it too.
   const style = document.createElement('style');
   style.textContent = `
     .sp-overlay { position: fixed; inset: 0; z-index: 900; pointer-events: none; overflow: visible; }
@@ -140,11 +151,28 @@
       fill: none; stroke: #ffd23f; stroke-width: 2; stroke-linecap: round;
       vector-effect: non-scaling-stroke;
     }
+    .sp-hint {
+      position: fixed;
+      left: calc(var(--controls-x, 20px) + 14px);
+      bottom: calc(var(--controls-y, 20px) + 14px);
+      z-index: 50;
+      transform: scale(var(--wheel-scale));
+      transform-origin: bottom left;
+      pointer-events: none;
+      font-family: var(--font-mono);
+      font-size: var(--text-micro);
+      letter-spacing: var(--track-label);
+      text-transform: uppercase;
+      color: var(--text-label);
+      opacity: 0.6;
+    }
+    :root[data-theme="dark"] .sp-hint { color: rgba(244, 248, 251, 0.9); }
+    @media (hover: none) { .sp-hint { display: none; } }
   `;
 
   function init() {
     document.head.append(style);
-    document.body.append(overlay);
+    document.body.append(overlay, hint);
     draw();
     apply();
     console.log('%c[spiral]%c  S toggle · H/V mirror · ⇧H/⇧V overlay a mirrored copy',

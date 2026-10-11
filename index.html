@@ -19,10 +19,10 @@
       document.documentElement.dataset.crt = localStorage.getItem('crt') === 'off' ? 'off' : 'on';
     })();
   </script>
-  <!-- Golden-spiral reference overlay (spiral.js injects its own styles). Always
-       loaded — no URL flag. Keyboard: S toggle · H/V mirror · Shift+H/V overlay a
-       mirrored copy. Defaults visible; the S on/off state persists per browser. -->
-  <script src="spiral.js?v=5" defer></script>
+  <!-- Golden-spiral overlay easter egg (spiral.js injects its own styles and a
+       bottom-left key hint). Hidden by default. Keyboard: S toggle · H/V mirror ·
+       Shift+H/V overlay a mirrored copy. -->
+  <script src="spiral.js?v=6" defer></script>
   <link rel="stylesheet" href="styles.css?v=35">
 </head>
 <body>
