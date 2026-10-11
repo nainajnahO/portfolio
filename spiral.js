@@ -1,6 +1,6 @@
-// Golden-spiral reference overlay — dev tool, loaded ONLY on ?spiral (see the
-// guarded head loader in index.html). A normal visit never requests this file,
-// so the live page is byte-identical and pays zero cost.
+// Golden-spiral reference overlay — dev/design tool, always loaded from
+// index.html (no URL flag). Defaults visible; press S to hide it (that choice
+// persists per browser via localStorage).
 //
 // Unlike the old draggable sandbox spiral, this one is LOCKED to the page: it is
 // drawn from the SAME contain-fit golden rectangle main.js composes the layout

@@ -19,17 +19,10 @@
       document.documentElement.dataset.crt = localStorage.getItem('crt') === 'off' ? 'off' : 'on';
     })();
   </script>
-  <script>
-    // Golden-spiral overlay loader. Only when the page is opened with ?spiral
-    // does this pull in the reference overlay + its HUD (spiral.js injects its
-    // own styles). A normal visit injects nothing and issues zero extra
-    // requests, so the live page is byte-identical. Dev tool, not visitor-facing.
-    if (new URLSearchParams(location.search).has('spiral')) {
-      const js = document.createElement('script');
-      js.src = 'spiral.js?v=4';
-      document.head.append(js);
-    }
-  </script>
+  <!-- Golden-spiral reference overlay (spiral.js injects its own styles). Always
+       loaded — no URL flag. Keyboard: S toggle · H/V mirror · Shift+H/V overlay a
+       mirrored copy. Defaults visible; the S on/off state persists per browser. -->
+  <script src="spiral.js?v=5" defer></script>
   <link rel="stylesheet" href="styles.css?v=35">
 </head>
 <body>
@@ -71,10 +64,10 @@
     <header class="hero">
 
       <div class="hero__copy">
-        <div class="hero__label">Young Adult / Software</div>
-        <h1 class="hero__title">Gen X</h1>
-        <div class="hero__motif">Contemporary Soft Club</div>
-        <p class="hero__blurb">I make quiet tools for loud problems. Eight of them live to the right.</p>
+        <div class="hero__label">nainajnahO</div>
+        <h1 class="hero__title">Hello</h1>
+        <div class="hero__motif">Project Portfolio</div>
+        <p class="hero__blurb">Here are some projects I had fun with, presented in a Gen X soft club style, an era I have good memories of, as it sparked my interest in IT through my PSP 2000, PS3 Slim and HP Pavilion dv6.</p>
       </div>
 
       <div id="work" class="wheel">
