@@ -2,13 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- No viewport meta on purpose: this is a desktop-only layout. Without it,
+       phones fall back to their ~980px default viewport and render the page
+       zoomed-out (pinch to zoom) — made for computers, not phones, true to the era. -->
   <title>Gen X — Software Portfolio</title>
   <meta name="description" content="I make quiet tools for loud problems. A one-page coding portfolio.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%231c3fc4'/%3E%3Ccircle cx='8' cy='8' r='3.5' fill='%23e8f1f5'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <script>
+    // Set theme + CRT state before first paint to avoid a flash of the wrong one.
+    // A manual choice (localStorage) wins; theme otherwise follows the OS, CRT
+    // defaults on. Mirrors main.js.
+    (() => {
+      const stored = localStorage.getItem('theme');
+      const dark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      document.documentElement.dataset.crt = localStorage.getItem('crt') === 'off' ? 'off' : 'on';
+    })();
+  </script>
+  <!-- Golden-spiral overlay easter egg (spiral.js injects its own styles and a
+       bottom-left key hint). Hidden by default. Keyboard: S toggle · H/V mirror ·
+       Shift+H/V overlay a mirrored copy. -->
+  <script src="spiral.js?v=6" defer></script>
+  <link rel="stylesheet" href="styles.css?v=35">
 </head>
 <body>
+
+  <!-- Fixed top-right control stack: colour theme, then CRT power. -->
+  <div class="controls">
+
+    <!-- Light/dark theme control: two Aqua-gel radio buttons -->
+    <div class="theme-toggle" role="radiogroup" aria-label="Colour theme">
+      <label class="theme-radio">
+        <input type="radio" name="theme" value="light" class="js-theme-radio">
+        <span class="theme-radio__dot" aria-hidden="true"></span>
+        <span class="theme-radio__text">Light</span>
+      </label>
+      <label class="theme-radio">
+        <input type="radio" name="theme" value="dark" class="js-theme-radio">
+        <span class="theme-radio__dot" aria-hidden="true"></span>
+        <span class="theme-radio__text">Dark</span>
+      </label>
+    </div>
+
+    <!-- CRT power. A single native checkbox reusing the theme control's Aqua-gel
+         styling (.theme-radio*): its gel dot lights blue when the phosphors are on.
+         The wrapping <label>'s text ("CRT") is the checkbox's accessible name. -->
+    <div class="crt-toggle">
+      <label class="theme-radio">
+        <input type="checkbox" class="js-crt-toggle">
+        <span class="theme-radio__dot" aria-hidden="true"></span>
+        <span class="theme-radio__text">CRT</span>
+      </label>
+    </div>
+
+  </div>
 
   <!-- Backdrop artwork -->
   <div class="backdrop" aria-hidden="true"></div>
@@ -17,36 +64,36 @@
     <header class="hero">
 
       <div class="hero__copy">
-        <div class="hero__label">Young Adult / Software</div>
-        <h1 class="hero__title">Gen X</h1>
-        <div class="hero__motif">Contemporary Soft Club</div>
-        <p class="hero__blurb">I make quiet tools for loud problems. Three of them live to the right.</p>
+        <div class="hero__label">nainajnahO</div>
+        <h1 class="hero__title">Hello</h1>
+        <div class="hero__motif">Project Portfolio</div>
+        <p class="hero__blurb">Here are some projects I had fun with, presented in a Gen X soft club style, an era I have good memories of, as it sparked my interest in IT through my PSP 2000, PS3 Slim and HP Pavilion dv6.</p>
       </div>
 
       <div id="work" class="wheel">
+        <div class="wheel__preview js-preview" aria-hidden="true"></div>
         <div class="wheel__stage js-stage">
           <div class="wheel__ring js-ring">
             <!-- 12 wheel faces cloned from the template below by main.js -->
           </div>
           <div class="wheel__frame" aria-hidden="true"></div>
         </div>
+        <button class="wheel__btn wheel__nav wheel__nav--prev js-prev" aria-label="Previous project">‹</button>
+        <button class="wheel__btn wheel__nav wheel__nav--next js-next" aria-label="Next project">›</button>
         <div class="wheel__controls">
-          <button class="wheel__btn js-prev" aria-label="Previous project">‹</button>
-          <span class="wheel__meta js-active-meta" aria-live="polite"></span>
-          <div class="wheel__rule"></div>
           <span class="wheel__counter js-counter"></span>
-          <button class="wheel__btn js-next" aria-label="Next project">›</button>
         </div>
       </div>
-
-      <div class="hero__glyphs" aria-hidden="true">JQGL8F0IVKW3&middot;HGRD0Y154LQ9&middot;WERF4/C0ELI7H1&gt;8L93&middot;KEOG8/0IJIH1T4</div>
     </header>
   </main>
 
   <template class="js-face-template">
-    <a class="face" href="#" draggable="false">
+    <a class="face" href="#" target="_blank" rel="noopener noreferrer" draggable="false">
       <div class="card">
-        <div class="card__shot">[ SCREENSHOT ]<div class="card__scanlines" aria-hidden="true"></div></div>
+        <div class="card__shot">
+          <img class="card__shot-img" alt="" draggable="false">
+          <div class="card__scanlines" aria-hidden="true"></div>
+        </div>
         <div class="card__body">
           <span class="card__meta"></span>
           <h3 class="card__title"></h3>
@@ -57,6 +104,19 @@
     </a>
   </template>
 
-  <script src="main.js?v=1" defer></script>
+  <!-- CRT screen simulation (see styles.css). Three full-viewport layers that
+       MODULATE the content beneath them rather than sitting on top. Each MUST be
+       a direct child of <body>: a wrapping positioned container would form its
+       own stacking context and the grille's mix-blend-mode would then blend
+       against an empty backdrop instead of the page. Decorative + never blocks
+       input, so all three are aria-hidden and pointer-events:none.
+         · grille  — RGB phosphor stripes × scanlines, multiplied into the pixels
+         · glass   — tube vignette + faint glare, composited over the top
+         · flicker — a barely-there brightness pulse (paused for reduced motion) -->
+  <div class="crt-grille"  aria-hidden="true"></div>
+  <div class="crt-glass"   aria-hidden="true"></div>
+  <div class="crt-flicker" aria-hidden="true"></div>
+
+  <script src="main.js?v=25" defer></script>
 </body>
 </html>

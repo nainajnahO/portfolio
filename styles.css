@@ -127,6 +127,38 @@
 
   --content-max: 1120px;
   --gutter: 24px;
+
+  /* Uniform shrink factor for the 3D wheel so it fits shorter laptops without
+     clipping the enlarged card above it. Every wheel dimension is expressed as
+     `base * var(--wheel-scale)`. Default 1 (full size, fail-safe); main.js
+     lowers it on short viewports and keeps the JS RADIUS in lockstep with the
+     ring depth below, so the 3D front-card registration stays exact. */
+  --wheel-scale: 1;
+
+  /* Golden ratio. Wheel faces are landscape φ:1 rectangles, and the whole layout is
+     composed against the golden spiral this ratio generates. */
+  --phi: 1.6180339887498949;
+
+  /* Viewport point the wheel's front face is centred on (the golden "eye"). main.js
+     overwrites these on desktop; the 50vw/50vh fallbacks keep the desktop calc()s
+     valid before it runs. Consumed only under html[data-wheel-placed] (see below). */
+  --wheel-x: 50vw;
+  --wheel-y: 50vh;
+
+  /* Hero copy's target: the MIRROR of the wheel's eye. Flipping the golden spiral
+     H+V reflects the eye through the rect centre, so the copy sits at the
+     diagonally-opposite eye (upper-left) and scales in lockstep with the wheel.
+     main.js overwrites these on desktop; fallbacks keep the calc()s valid before
+     it runs. Consumed only under html[data-hero-placed]. */
+  --hero-x: 30vw;
+  --hero-y: 30vh;
+  --hero-scale: 1;
+
+  /* Enlarged preview's vertical band, as offsets from #work (its absolute container):
+     top = the GEN X copy's top line, bottom = a gap above the wheel's front face.
+     main.js overwrites these on desktop; consumed only under html[data-wheel-placed]. */
+  --preview-top: 0px;
+  --preview-bottom: 0px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -156,15 +188,22 @@
   /* Hairline crosshair frame color (thin white rules over imagery) */
   --rule-on-image: rgba(255, 255, 255, 0.75);
 
-  /* Canonical page backdrop. The design canvas used a station-blur.jpeg
-     variant that couldn't be exported whole (API size cap) — this is the
-     design system's canonical artwork; swap the URL if the original photo
-     turns up. */
-  --image-backdrop: url('assets/backgrounds/gen-x-soft-club.webp');
+  /* Page backdrop — the Gen X Soft Club station-blur photograph, converted
+     from the source JPEG to WebP (1200×681, quality 82). */
+  --image-backdrop: url('assets/backgrounds/gen-x-soft-club.webp?v=2');
 
   --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   --duration-fast: 160ms;
   --duration-slow: 420ms;
+
+  /* CRT simulation knobs (consumed by the .crt-* layers at the end of the file).
+     Tuning these is how you dial the whole look without touching the rules. */
+  --crt-pitch: 3px;          /* width of one R→G→B phosphor triad; bigger = chunkier "pixels" */
+  --crt-scan: 4px;           /* period of the horizontal scanlines */
+  --crt-scan-depth: 0.07;    /* darkness of each scanline (0 = none, 1 = black) */
+  --crt-phosphor-soft: 65%;  /* white mixed into each stripe; higher = brighter & softer, lower = punchier & darker */
+  --crt-vignette: 0.1;       /* strength of the tube edge-darkening */
+  --crt-glare: 0.1;          /* strength of the faint glass reflection */
 }
 
 /* ------------------------------------------------------------------ */
@@ -191,6 +230,18 @@ body {
   background: var(--page-bg) var(--image-backdrop) center / cover no-repeat;
 }
 
+/* Dark-theme dim. Kept always-present at opacity 0 so toggling the theme fades
+   it in/out softly rather than snapping (see :root[data-theme="dark"] below). */
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 19, 38, 0.78);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-slow) var(--ease-soft);
+}
+
 .page {
   max-width: var(--content-max);
   margin: 0 auto;
@@ -201,7 +252,17 @@ body {
 /* Hero                                                                */
 /* ------------------------------------------------------------------ */
 .hero {
-  min-height: max(420px, 73vh);
+  /* Fit the hero to one screen so the enlarged preview + wheel never scroll on
+     a laptop; box-sizing folds the vertical padding into the viewport height.
+     dvh (dynamic viewport height) tracks the *visible* area — unlike vh, it
+     excludes browser UI / scrollbars, which is what caused the phantom scroll on
+     laptops. vh stays as a fallback for engines without dvh. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  /* Both columns start at a shared top line ~90px down: the GEN X copy and the
+     enlarged card begin at the same height rather than centring independently. */
+  --block-top: 90px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: 48px;
@@ -210,21 +271,37 @@ body {
   position: relative;
 }
 
-/* The spec set the hero copy in white directly on the photograph, which
-   fails WCAG AA contrast (measured 1.6–2.6:1). Per the design system's own
-   rule — glass whenever content overlays the background image — the copy
-   sits on a glass panel in ink instead. */
+/* The spec set the hero copy in white directly on the photograph, which fails
+   WCAG AA contrast (measured 1.6–2.6:1). Rather than a glass panel, the copy
+   sits in dark ink lifted by a soft vignette of light pooled beneath it —
+   reading as the photograph's own lighting, not a panel. It brightens the
+   backdrop where the text sits and dissolves outward; a small patch of the
+   longest lines may dip below AA where they run past the pool, an accepted
+   trade for the panel-free look. Dark theme drops the vignette (rule below)
+   and floats light ink over the dimmed backdrop instead. */
 .hero__copy {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* Sit near the top of the column rather than centred in it; --block-top drops
+     the copy to the shared top line it holds with the enlarged card. */
+  align-self: start;
+  margin-top: var(--block-top);
   padding: 32px;
-  background: var(--surface-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
-  backdrop-filter: var(--blur-glass);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-soft);
+  background: radial-gradient(130% 105% at 28% 46%,
+              rgba(246, 251, 253, 0.82) 0%,
+              rgba(246, 251, 253, 0.45) 45%,
+              rgba(246, 251, 253, 0) 72%);
+  /* Cross-fade the vignette out and slide the copy left when switching to dark. */
+  transition: background var(--duration-slow) var(--ease-soft),
+              padding var(--duration-slow) var(--ease-soft);
+}
+
+/* Soft colour cross-fade on the hero copy when the theme flips. */
+.hero__label,
+.hero__title,
+.hero__motif,
+.hero__blurb {
+  transition: color var(--duration-slow) var(--ease-soft);
 }
 
 .hero__label {
@@ -267,32 +344,89 @@ body {
   margin: 0;
 }
 
-/* Vertical data-glyph column, left page edge */
-.hero__glyphs {
-  position: absolute;
-  left: 8px;
-  top: 140px;
-  writing-mode: vertical-rl;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.55);
-  pointer-events: none;
-  user-select: none;
-}
-
 /* ------------------------------------------------------------------ */
 /* Project wheel                                                       */
 /* ------------------------------------------------------------------ */
 .wheel {
   position: relative;
   min-width: 0;
+  /* Fill one screen (viewport minus the hero's 32+48px padding) when it fits, but
+     grow past it — letting the page scroll — when content is taller. The enlarged
+     card is a fixed full-content 16:9 card that never shrinks, so it's the floor;
+     the adaptive wheel below shrinks first to make room, and only once it bottoms
+     out at its min scale does the page scroll. dvh matches .hero; vh is fallback. */
+  min-height: calc(100vh - 80px);
+  min-height: calc(100dvh - 80px);
+  display: flex;
+  flex-direction: column;
 }
+
+/* Enlarged preview — a decorative copy of the front card that fills whatever
+   space is left above the fixed-size wheel and rises in when the wheel settles.
+   It lives OUTSIDE .wheel__stage on purpose: the stage's overflow:hidden + mask
+   would otherwise clip it. */
+.wheel__preview {
+  flex: 1 1 auto;           /* take all space above the stage → pushes wheel down */
+  /* No min-height:0 — the card is a fixed full-content element now, so the preview
+     must not shrink below it (that would clip the card). It only grows past the
+     card's height on tall screens. */
+  margin-top: var(--block-top);  /* start the card at the shared top line with the GEN X copy */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;/* card sits at the top, aligned with the GEN X block */
+  padding-bottom: 8px;
+  z-index: 3;               /* above the stage faces where they meet */
+  pointer-events: none;     /* never blocks dragging/clicking the wheel */
+}
+
+/* Fills the space above the wheel. Visible by default; the tuck/rise is a CSS
+   transition driven by the .is-tucked class in main.js. Keeping the resting state
+   (no class) opaque means any hiccup fails VISIBLE, and "show" is just REMOVING the
+   class — the inverse of an earlier opacity:0 + reflow-replay trick that left the
+   card invisible in Safari. */
+.wheel__preview .card {
+  width: min(100%, 460px);
+  /* Size to content and never grow/shrink: the 16:9 shot + full body set a fixed
+     height so the blurb and CTA are always visible (height:auto overrides the base
+     card's fixed 262px). The wheel/page absorbs any size mismatch, not the card. */
+  flex: 0 0 auto;
+  height: auto;
+  transform-origin: bottom center;
+  transition: transform var(--duration-slow) var(--ease-soft),
+              opacity   var(--duration-slow) var(--ease-soft);
+  /* The band around the card stays pointer-events:none (drags pass through), but
+     the card itself is the primary click target → opens the active project (main.js).
+     Faces below remain the keyboard-reachable <a> links. */
+  pointer-events: auto;
+  cursor: pointer;
+}
+/* Tucked = hidden while the wheel is moving: slid down, shrunk, faded. Removing
+   this class rises it back up and enlarges it to rest. While tucked it must not
+   catch clicks (it's invisible and the front project is mid-change). */
+.wheel__preview .card.is-tucked {
+  transform: translateY(36px) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Enlarge the reused card sub-elements. The screenshot is a fixed 16:9 frame
+   (height follows the card width), not a flexible filler. The text + body padding
+   scale with --wheel-scale (the same token that drives the wheel geometry and the
+   card's width) so the whole card shrinks as one unit with no lower floor — the
+   calc bases equal today's px, so at scale 1 nothing changes. */
+.wheel__preview .card__shot  { aspect-ratio: 16 / 9; height: auto; flex: 0 0 auto; min-height: 0; }
+.wheel__preview .card__body  { padding: calc(16px * var(--wheel-scale)) calc(24px * var(--wheel-scale)) calc(18px * var(--wheel-scale)); gap: calc(10px * var(--wheel-scale)); }
+.wheel__preview .card__meta  { font-size: calc(12px * var(--wheel-scale)); }
+.wheel__preview .card__title { font-size: calc(26px * var(--wheel-scale)); }
+.wheel__preview .card__blurb { font-size: calc(15px * var(--wheel-scale)); line-height: 1.6; }
+.wheel__preview .card__cta   { font-size: calc(11px * var(--wheel-scale)); }
 
 .wheel__stage {
   position: relative;
-  height: 320px;
-  perspective: 1400px;
+  height: calc(320px * var(--wheel-scale));
+  flex-shrink: 0;          /* hold the (scaled) size; the preview absorbs the slack */
+  perspective: calc(1400px * var(--wheel-scale));
   overflow: hidden;
   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);
   mask-image: linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%);
@@ -307,17 +441,19 @@ body {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: translateZ(-520px);
+  transform: translateZ(calc(-340px * var(--wheel-scale)));
 }
 
-/* Front-card registration frame */
+/* Front-card registration frame. Centred on the golden face and matched to its
+   height (250/φ * scale) so the side rails bracket the card instead of overrunning
+   the taller stage. */
 .wheel__frame {
   position: absolute;
   left: 50%;
-  top: 4px;
-  bottom: 4px;
-  width: 274px;
-  transform: translateX(-50%);
+  top: 50%;
+  width: calc(274px * var(--wheel-scale));
+  height: calc(250px / var(--phi) * var(--wheel-scale));
+  transform: translate(-50%, -50%);
   border-left: 1px solid rgba(255, 255, 255, 0.55);
   border-right: 1px solid rgba(255, 255, 255, 0.55);
   pointer-events: none;
@@ -328,17 +464,39 @@ body {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 250px;
+  width: calc(250px * var(--wheel-scale));
   display: block;
   text-decoration: none;
   color: inherit;
 }
+
+/* Wheel faces are compact, text-only cards — meta and title only. The screenshot,
+   blurb and CTA are all hidden here; the blurb + CTA are reserved for the enlarged
+   card above the wheel (a bare .card clone with no .face ancestor, so it keeps
+   them and its screenshot). */
+.face .card__shot,
+.face .card__blurb,
+.face .card__cta { display: none; }
+
+/* Faces are landscape golden rectangles (φ:1). Height derives from the face width
+   (calc(250px * var(--wheel-scale)) on .face) via aspect-ratio; height:auto
+   overrides the base `.card { height: 262px }`, which stays for the enlarged
+   preview clone (NOT a .face, so it keeps its own content-sized height). */
+.face .card { aspect-ratio: var(--phi); height: auto; }
+
+/* The body is the whole card now (base .card__body { flex: 1 }); centre the meta +
+   title, and scale their type + padding with --wheel-scale so the face text shrinks
+   and grows in lockstep with the (already --wheel-scale-sized) face box. */
+.face .card__body  { justify-content: center; padding: calc(16px * var(--wheel-scale)) calc(18px * var(--wheel-scale)) calc(18px * var(--wheel-scale)); gap: calc(8px * var(--wheel-scale)); }
+.face .card__meta  { font-size: calc(10px * var(--wheel-scale)); }
+.face .card__title { font-size: calc(15px * var(--wheel-scale)); }
 
 .wheel__controls {
   display: flex;
   align-items: center;
   gap: 14px;
   margin-top: 14px;
+  flex-shrink: 0;
 }
 
 .wheel__btn {
@@ -362,7 +520,6 @@ body {
 
 /* The spec's translucent white here tops out below 2:1 contrast on the
    photo; ink-on-glass chips match the buttons and pass AA. */
-.wheel__meta,
 .wheel__counter {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -372,12 +529,6 @@ body {
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-pill);
   padding: 4px 12px;
-}
-
-.wheel__rule {
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.35);
 }
 
 /* ------------------------------------------------------------------ */
@@ -405,6 +556,17 @@ body {
   font-size: 10px;
   letter-spacing: 2px;
   color: var(--steel);
+}
+
+/* The screenshot fills the shot box (cover-cropped); the scanlines below sit on
+   top of it for the CRT texture. Only rendered on the enlarged preview card —
+   faces hide .card__shot entirely. */
+.card__shot-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .card__scanlines {
@@ -458,19 +620,338 @@ body {
 /* ------------------------------------------------------------------ */
 /* Small screens — stack the hero, hide edge decoration                */
 /* ------------------------------------------------------------------ */
-@media (max-width: 860px) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
-    gap: 32px;
-    padding-top: 48px;
-  }
+/* ------------------------------------------------------------------ */
+/* Theme: dark — the "Darken page" treatment promoted from the dev HUD.  */
+/* Light is the default look above (the "Glass" treatment); dark dims the */
+/* shared backdrop photo and floats the hero copy in light ink. Toggled   */
+/* via data-theme on <html> (set pre-paint in index.html, flipped by the  */
+/* .theme-toggle wiring in main.js).                                       */
+/* ------------------------------------------------------------------ */
+:root { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
-  .hero__title { font-size: 44px; }
+:root[data-theme="dark"] .backdrop::after { opacity: 1; }
 
-  .hero__glyphs { display: none; }
+/* No glass panel in dark — the dimmed backdrop already carries the copy, so it
+   floats in light ink flush to the column (matching the HUD's darken variant). */
+:root[data-theme="dark"] .hero__copy {
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+  padding: 32px 0;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
+:root[data-theme="dark"] .hero__title,
+:root[data-theme="dark"] .hero__blurb { color: #f4f8fb; }
+:root[data-theme="dark"] .hero__label,
+:root[data-theme="dark"] .hero__motif { color: rgba(244, 248, 251, 0.85); }
+
+/* ------------------------------------------------------------------ */
+/* Top-right controls — Aqua-gel toggles, period-correct for the early-   */
+/* 2000s "soft club" look (a flat slider toggle is a 2007+ idiom). Native  */
+/* <input> skinned glossy. Fixed outside the hero grid so they can't       */
+/* affect the no-scroll layout; stacked so CRT power sits under the theme. */
+/* ------------------------------------------------------------------ */
+.controls {
+  position: fixed;
+  /* Hug the golden rectangle's top-right corner, tucked a hair inside, instead of
+     the viewport corner — so the stack sits within the spiral's frame and tracks
+     it on resize. main.js --controls-x/-y are the rect's margins (ox/oy); the
+     fallbacks match a typical desktop inset until placeWheel() first runs. */
+  top: calc(var(--controls-y, 20px) + 14px);
+  right: calc(var(--controls-x, 20px) + 14px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  /* Scale the whole theme/CRT stack with the layout, anchored to that corner. */
+  transform: scale(var(--wheel-scale));
+  transform-origin: top right;
+}
+/* Both control rows are the same glass pill. */
+.theme-toggle,
+.crt-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  padding: 8px 16px;
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-panel);
+}
+.theme-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.theme-radio__text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+/* Hide the native input visually but keep it in the a11y tree + focusable. */
+.theme-radio input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+/* Glossy gel bubble — a light "pearl" when off. */
+.theme-radio__dot {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 32%, #ffffff, #dfeaf1 45%, #b9ccd9 100%);
+  border: 1px solid rgba(83, 139, 168, 0.5);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9),
+              inset 0 -2px 3px rgba(55, 75, 104, 0.2);
+  transition: all var(--duration-fast) var(--ease-soft);
+}
+/* The Aqua top-gloss highlight. */
+.theme-radio__dot::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  right: 3px;
+  height: 5px;
+  border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+}
+/* Selected — blue gel, lit. */
+.theme-radio input:checked + .theme-radio__dot {
+  background: radial-gradient(circle at 50% 32%, #6d8ff0, var(--electric) 55%, var(--electric-deep) 100%);
+  border-color: var(--electric-deep);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6),
+              inset 0 -2px 3px rgba(16, 42, 90, 0.5),
+              0 0 8px rgba(28, 63, 196, 0.55);
+}
+.theme-radio input:focus-visible + .theme-radio__dot {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Keep the controls legible over the dimmed backdrop in dark mode. */
+:root[data-theme="dark"] .theme-toggle,
+:root[data-theme="dark"] .crt-toggle {
+  background: rgba(20, 32, 56, 0.55);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+:root[data-theme="dark"] .theme-radio__text { color: rgba(244, 248, 251, 0.9); }
+
+/* ------------------------------------------------------------------ */
+/* CRT screen simulation                                                */
+/*                                                                      */
+/* Not a sticker over the page: the grille layer is composited with     */
+/* mix-blend-mode:multiply, so it MODULATES the real content's pixels.  */
+/* Multiplying a white glyph by an R/G/B stripe pattern turns that glyph */
+/* into red/green/blue phosphor stripes — the same way a shadow-mask     */
+/* tube builds an image from sub-pixel phosphors — so you genuinely      */
+/* "see the pixels" while the underlying DOM stays crisp, selectable and */
+/* accessible. Pure CSS: no rasterization, no WebGL, no build step. The  */
+/* backdrop-filter glass and the 3D transform wheel are left untouched.  */
+/*                                                                       */
+/* Each layer is fixed + pointer-events:none and a direct child of body  */
+/* (a positioned wrapper would isolate the grille from the page it needs */
+/* to blend with). Layer order: grille → glass → flicker.                */
+/* ------------------------------------------------------------------ */
+.crt-grille,
+.crt-glass,
+.crt-flicker {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* CRT power switch (the .crt-toggle checkbox sets data-crt on <html>; default
+   is "on"). Off = drop all three layers so the page renders flat. */
+:root[data-crt="off"] .crt-grille,
+:root[data-crt="off"] .crt-glass,
+:root[data-crt="off"] .crt-flicker {
+  display: none;
+}
+
+/* The phosphors. Two background layers multiplied together (vertical RGB
+   stripes × horizontal scanlines) give a shadow-mask grid; that grid is then
+   multiplied over the page, chopping its pixels into phosphors + raster lines.
+   color-mix lets one knob (--crt-phosphor-soft) trade punch for brightness by
+   lightening each stripe toward white. */
+.crt-grille {
+  z-index: 100;
+  mix-blend-mode: multiply;
+  background-image:
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, #ff0000, #fff var(--crt-phosphor-soft)) 0,
+      color-mix(in srgb, #ff0000, #fff var(--crt-phosphor-soft)) calc(var(--crt-pitch) / 3),
+      color-mix(in srgb, #00ff00, #fff var(--crt-phosphor-soft)) calc(var(--crt-pitch) / 3),
+      color-mix(in srgb, #00ff00, #fff var(--crt-phosphor-soft)) calc(2 * var(--crt-pitch) / 3),
+      color-mix(in srgb, #0000ff, #fff var(--crt-phosphor-soft)) calc(2 * var(--crt-pitch) / 3),
+      color-mix(in srgb, #0000ff, #fff var(--crt-phosphor-soft)) var(--crt-pitch)),
+    repeating-linear-gradient(0deg,
+      rgba(0, 0, 0, var(--crt-scan-depth)) 0,
+      rgba(0, 0, 0, var(--crt-scan-depth)) 1px,
+      transparent 1px,
+      transparent var(--crt-scan));
+  background-blend-mode: multiply;
+}
+
+/* The tube glass. A dark radial vignette (curved-edge falloff) with a faint
+   off-centre glare on top, composited normally over the phosphors. */
+.crt-glass {
+  z-index: 101;
+  background:
+    radial-gradient(ellipse 75% 68% at 32% 24%,
+      rgba(255, 255, 255, var(--crt-glare)), transparent 46%),
+    radial-gradient(ellipse 90% 88% at 50% 50%,
+      transparent 55%,
+      rgba(4, 8, 18, calc(var(--crt-vignette) * 0.6)) 84%,
+      rgba(4, 8, 18, var(--crt-vignette)) 100%);
+}
+
+/* Refresh flicker — a whisper-faint brightness pulse. Kept as its own layer so
+   it can be paused without disturbing the phosphors or glass. */
+.crt-flicker {
+  z-index: 102;
+  background: rgba(3, 6, 14, 0.5);
+  opacity: 0;
+  animation: crt-flicker 4.2s steps(1, end) infinite;
+}
+
+@keyframes crt-flicker {
+  0%, 96%, 100% { opacity: 0; }
+  97%           { opacity: 0.05; }
+  98%           { opacity: 0.01; }
+  99%           { opacity: 0.06; }
+}
+
+/* Lift the wheel out of the grid and drop its front face onto the golden "eye"
+   (the inner residual rectangle of the contain-fit golden spiral). main.js computes
+   --wheel-x/--wheel-y/--wheel-scale from the viewport and sets data-wheel-placed once
+   ready, so before JS runs the page keeps the in-flow flex fallback. With the preview
+   + controls pulled out of flow (absolute, below), .wheel__stage is #work's only
+   in-flow child, so #work shrink-wraps to the stage — translate(-50%,-50%) then centres
+   the STAGE (= the front face, which nets to z=0) on the eye with no content
+   measurement. A 2D translate on the stage's ancestor is 3D-safe (perspective is on
+   .wheel__stage, preserve-3d on .wheel__ring). Applies at every width now — there is
+   no separate phone layout. */
+html[data-wheel-placed] #work {
+  position: fixed;
+  left: var(--wheel-x);
+  top: var(--wheel-y);
+  width: calc(250px * var(--wheel-scale) * 2.4);   /* stage / neighbour-peek width — TUNABLE */
+  min-height: 0;                                    /* override .wheel min-height so #work == stage */
+  margin: 0;
+  transform: translate(-50%, -50%);
+}
+
+/* Hero copy lifted onto the mirror eye and scaled with the viewport (the whole
+   block — type + padding — via one transform; the desktop copy uses fixed px
+   sizes, so this is the sole viewport response). translate(-50%,-50%) keeps its
+   centre on the eye for any scale; the 2D transform is flat (no 3D here). */
+html[data-hero-placed] .hero__copy {
+  position: fixed;
+  left: var(--hero-x);
+  top: var(--hero-y);
+  margin: 0;
+  transform: translate(-50%, -50%) scale(var(--hero-scale));
+  transform-origin: center;
+}
+
+/* Enlarged preview: a band in the right column, top on the GEN X copy's top line
+   and bottom a small gap above the wheel (both offsets from #work, set by main.js).
+   Out of flow, so its height never shifts the wheel anchor. */
+html[data-wheel-placed] .wheel__preview {
+  position: absolute;
+  top: var(--preview-top);       /* shared top line with the GEN X copy */
+  bottom: var(--preview-bottom); /* small gap above the wheel's front face */
+  left: 0;
+  right: 0;
+  margin: 0;
+  flex: none;
+}
+/* Card fills the band (full column width); the screenshot flexes to absorb the
+   slack so the body keeps its (scaled) size. */
+html[data-wheel-placed] .wheel__preview .card {
+  width: 100%;
+  height: 100%;
+}
+html[data-wheel-placed] .wheel__preview .card__shot {
+  flex: 1 1 auto;
+  height: auto;
+  aspect-ratio: auto;   /* let flex set the height, not the 16:9 ratio */
+  min-height: 0;
+}
+html[data-wheel-placed] .wheel__preview .card__body {
+  flex: 0 0 auto;       /* natural height; the shot takes the extra space */
+}
+
+/* Counter: centred and pulled up to sit just under the front card (the stage is
+   taller than the card, so there's empty lower-stage band to occupy), scaled with
+   --wheel-scale from the top-centre attach point. */
+html[data-wheel-placed] .wheel__controls {
+  position: absolute;
+  top: calc(50% + 96px * var(--wheel-scale));   /* just below the front face — TUNABLE */
+  left: 50%;
+  margin: 0;
+  transform: translateX(-50%) scale(var(--wheel-scale));
+  transform-origin: top center;
+  width: max-content;
+  max-width: 92vw;
+}
+
+/* Prev / next flank the wheel: pinned to #work's left/right edges — which are the
+   neighbour-peek fade line (#work is 250·scale·2.4 wide) — and centred on the card
+   band (#work's box == the stage, centred on the eye). Siblings of .wheel__stage,
+   so its overflow-clip/mask never touches them; z-index above the stage so an arrow
+   click wins over the stage's drag region. Scaled with the wheel like everything else. */
+html[data-wheel-placed] .wheel__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+}
+html[data-wheel-placed] .wheel__nav--prev { left: 0;  transform: translate(-50%, -50%) scale(var(--wheel-scale)); }
+html[data-wheel-placed] .wheel__nav--next { right: 0; transform: translate(50%, -50%) scale(var(--wheel-scale)); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  /* The preview never tucks under reduced motion — hidePreview() early-returns — so
+     these rules are belt-and-suspenders: they neutralize .is-tucked in case it ever
+     lands, keeping the card put and just swapping content on settle (no slide/fade). */
+  .wheel__preview .card { transition: none; }
+  .wheel__preview .card.is-tucked { transform: none; opacity: 1; }
+  /* Theme switch snaps instead of fading/sliding under reduced motion. */
+  .backdrop::after,
+  .hero__copy,
+  .hero__label, .hero__title, .hero__motif, .hero__blurb,
+  .theme-radio__dot { transition: none; }
+
+  /* The CRT phosphors + scanlines stay (they're static), but the flicker pulse
+     is motion — hold it off. */
+  .crt-flicker { animation: none; opacity: 0; }
+}
+
+/* Accessibility escape hatch. The grille's multiply and the tube vignette lower
+   the effective contrast this page was hand-tuned to pass AA at (worst at the
+   vignette edges — e.g. the bottom mono chips and the accent link drop below
+   4.5:1). Users who ask their OS for maximum contrast or reduced transparency
+   are telling us legibility beats the effect, so remove it for them entirely. */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  .crt-grille,
+  .crt-glass,
+  .crt-flicker { display: none; }
 }

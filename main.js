@@ -2,23 +2,58 @@
 // No dependencies, no build step. Ported from the design's React logic
 // (PortfolioSite.dc.html on claude.ai/design) to vanilla JS.
 
+// The real portfolio. `meta` is the tech stack (shown on the face + in the
+// controls pill); `img`/`cta` are used only by the enlarged preview card.
 const projects = [
-  { meta: 'PROJ.01 / 2026 / RUST', title: 'Haze CLI', blurb: 'Turns messy CSVs into clean dashboards, straight from the terminal.', url: '#' },
-  { meta: 'PROJ.02 / 2025 / TS', title: 'Platform 9', blurb: 'A tiny realtime engine for ambient wall dashboards.', url: '#' },
-  { meta: 'PROJ.03 / 2024 / TS', title: 'Last Train', blurb: 'Transit departure boards for cities you have never lived in.', url: '#' },
+  { meta: 'Swift · SwiftUI · Core ML', title: 'PureLenz', blurb: 'A minimalist iOS camera with tactile manual control over ISO and shutter speed. On-device Core ML learns your style and adapts as you shoot.', img: 'images/purelenz.jpg', cta: 'View repo', url: 'https://github.com/nainajnahO/PureLenz' },
+  { meta: 'React · TypeScript · Supabase · Three.js', title: 'forskapong', blurb: 'The live site and tournament engine for Tentafestivalen Beerpong (Uppsala, 2026) — a 3D landing page and venue map up front, with a Swiss-plus-knockout bracket engine, live scoreboard, and admin tooling on Supabase behind it.', img: 'images/forskapong.jpg', cta: 'Visit site', url: 'https://rollnsolution.com' },
+  { meta: 'JavaScript · Chart.js · 98.css', title: 'Bolånekalkyl', blurb: 'A calculator for how a Swedish mortgage plays out over decades — change any value and the debt, monthly cost, and total interest update live; compare scenarios side by side and model rate changes at chosen years. Dressed as Windows 98, on purpose.', img: 'images/bolanekalkyl.png', cta: 'Open calculator', url: 'https://nainajnaho.github.io/Bolanekalkyl/' },
+  { meta: 'FastAPI · pgvector · Voyage · Anthropic', title: 'rag-knowledge-base', blurb: 'A retrieval-augmented knowledge base — upload documents, run hybrid search, and chat with answers backed by verifiable citations.', img: 'images/rag-knowledge-base.png', cta: 'View repo', url: 'https://github.com/nainajnahO/rag-knowledge-base' },
+  { meta: 'Python · Claude API · Gradio', title: 'Dr. Fungi', blurb: 'A multimodal LLM chatbot built on the Claude API with a Gradio interface — converse over both text and images.', img: 'images/dr-fungi.png', cta: 'View repo', url: 'https://github.com/nainajnahO/Dr.-Fungi' },
+  { meta: 'Python · Jupyter · scikit-learn', title: 'trump-tweet-analysis', blurb: "A data study of Trump's tweets — engagement patterns, temporal trends, and clustering, told through a set of visualisations.", img: 'images/trump-tweet-analysis.png', cta: 'View repo', url: 'https://github.com/nainajnahO/trump-tweet-analysis' },
+  { meta: 'Python · pandas · NumPy', title: 'Rhoa', blurb: 'A pandas DataFrame extension that adds technical-analysis accessors — indicators and signals, straight on your dataframe.', img: 'images/rhoa.png', cta: 'View repo', url: 'https://github.com/nainajnahO/Rhoa' },
+  { meta: 'Haskell', title: 'WordleHaskell', blurb: 'A terminal Wordle clone written in Haskell for a Program Design & Data Structures course.', img: 'images/wordlehaskell.png', cta: 'View repo', url: 'https://github.com/nainajnahO/WordleHaskell' },
 ];
 
-// The wheel is a 12-sided cylinder: faces every 30°, radius 520px, the
-// three projects repeating around it so a card is always approaching.
-const FACES = 12;
-const STEP = 30;
-const RADIUS = 520;
+// The wheel is an 8-sided cylinder: faces every 45°, one project per face, so a
+// card is always approaching (8 × 45° covers the full 360°).
+const FACES = 8;
+const STEP = 45;
+// Cylinder depth (px), tightened from the design's 520 to 340 so the 8 faces
+// (45° apart) sit as a close fan instead of splaying out to the stage edges. The
+// wheel is drawn at a uniform --wheel-scale so it fits shorter laptops. RADIUS is
+// the scaled depth used per frame; it MUST stay in lockstep with the CSS ring
+// translateZ (`-340px * var(--wheel-scale)` in styles.css) or the front card
+// stops registering at z=0 and the golden-eye placement drifts.
+const BASE_RADIUS = 340;
+let RADIUS = BASE_RADIUS;
 
 const stage = document.querySelector('.js-stage');
+const workEl = document.getElementById('work');       // the whole wheel unit (positioning ctx for the preview)
+const heroCopy = document.querySelector('.hero__copy');
 const ring = document.querySelector('.js-ring');
 const faceTemplate = document.querySelector('.js-face-template');
-const activeMetaEl = document.querySelector('.js-active-meta');
 const counterEl = document.querySelector('.js-counter');
+
+// The enlarged preview above the wheel: a clone of just the .card (no .face
+// anchor, so it never becomes a tab stop), refilled from `projects` on settle.
+const previewEl = document.querySelector('.js-preview');
+const previewCard = faceTemplate.content.querySelector('.card').cloneNode(true);
+previewEl.append(previewCard);
+
+// The preview mirrors the settled front project; clicking it opens that project's
+// link in a new tab — matching the faces' target="_blank". The big card is the
+// obvious target, whereas the real <a> is the smaller face below (kept for
+// keyboard/screen-reader users).
+previewCard.addEventListener('click', () => {
+  const url = projects[frontActiveIdx()].url;
+  if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
+});
+
+// Warm the browser cache with every screenshot up front. The preview card swaps
+// its image on each settle; without this, a card would visibly load in as the
+// wheel lands on it (the old placeholders had no images, so nothing ever loaded).
+projects.forEach((p) => { new Image().src = p.img; });
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -44,6 +79,40 @@ let wheelTimer = null;
 // Map an angle to [-180, 180) so faces on the far side stay hidden.
 const normalize = (a) => ((a % 360) + 540) % 360 - 180;
 
+// Which project sits at the front of the wheel right now.
+function frontActiveIdx() {
+  const front = ((Math.round(angle / STEP) % FACES) + FACES) % FACES;
+  return front % projects.length;
+}
+
+function fillCard(cardEl, p) {
+  cardEl.querySelector('.card__meta').textContent = p.meta;
+  cardEl.querySelector('.card__title').textContent = p.title;
+  cardEl.querySelector('.card__blurb').textContent = p.blurb;
+  // Only the enlarged preview card shows the screenshot + CTA (faces hide both).
+  const img = cardEl.querySelector('.card__shot-img');
+  img.src = p.img;
+  img.alt = `${p.title} — screenshot`;
+  cardEl.querySelector('.card__cta').textContent = `${p.cta} →`;
+}
+
+// Reveal the enlarged preview on the settled project: swap content (while it's
+// still tucked/hidden) then rise it back up. Called only when the wheel settles,
+// and every motion tucks the card first, so this is where "show" lives. The
+// screenshots are preloaded (above), so the swap happens off-screen and the card
+// rises already fully painted — no image loading in as it appears.
+function settlePreview() {
+  fillCard(previewCard, projects[frontActiveIdx()]);
+  previewCard.classList.remove('is-tucked');
+}
+
+// Tuck the card away the instant the wheel starts moving; it stays hidden until
+// the next settle re-reveals it. The CSS transition does the slide + fade.
+function hidePreview() {
+  if (reducedMotion) return;               // reduced motion: never hide, just swap on settle
+  previewCard.classList.add('is-tucked');  // idempotent: re-adding an existing class is a no-op
+}
+
 function render() {
   faces.forEach((el, i) => {
     const rel = normalize(i * STEP - angle);
@@ -61,9 +130,7 @@ function render() {
     el.style.visibility = hidden ? 'hidden' : 'visible';
   });
 
-  const front = ((Math.round(angle / STEP) % FACES) + FACES) % FACES;
-  const activeIdx = front % projects.length;
-  activeMetaEl.textContent = projects[activeIdx].meta;
+  const activeIdx = frontActiveIdx();
   counterEl.textContent = `0${activeIdx + 1} / 0${projects.length}`;
 }
 
@@ -78,10 +145,15 @@ function animateTo(target) {
   cancelAnim();
   const from = angle;
   const d = target - from;
-  if (Math.abs(d) < 0.01) return;
+  if (Math.abs(d) < 0.01) {
+    settlePreview();
+    return;
+  }
+  if (Math.abs(d) > 0.5) hidePreview();  // ‹ ›, side-card, drag-release snap → tuck before spinning
   if (reducedMotion) {
     angle = target;
     render();
+    settlePreview();
     return;
   }
   const t0 = performance.now();
@@ -91,7 +163,12 @@ function animateTo(target) {
     const e = 1 - Math.pow(1 - p, 3);
     angle = from + d * e;
     render();
-    raf = p < 1 ? requestAnimationFrame(tick) : null;
+    if (p < 1) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = null;
+      settlePreview();
+    }
   };
   raf = requestAnimationFrame(tick);
 }
@@ -134,6 +211,7 @@ stage.addEventListener('pointermove', (e) => {
   if (!drag.captured && moved > 5) {
     stage.setPointerCapture(drag.pointerId);
     drag.captured = true;
+    hidePreview();   // it's a real drag now → tuck the card
   }
   const dAngle = -dx * 0.28;
   drag.v = 0.7 * dAngle + 0.3 * drag.v;
@@ -169,6 +247,7 @@ stage.addEventListener('wheel', (e) => {
   if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
   e.preventDefault();
   cancelAnim();
+  hidePreview();   // trackpad spin → tuck; the 140ms debounce re-reveals on settle
   angle += e.deltaX * 0.35;
   render();
   clearTimeout(wheelTimer);
@@ -182,4 +261,139 @@ document.querySelector('.js-next').addEventListener('click', () => {
   animateTo(Math.round(angle / STEP) * STEP + STEP);
 });
 
+// Place the wheel's landscape golden (φ:1) front face on the golden "eye" — the inner
+// residual rectangle of the contain-fit golden spiral — at every width, and re-place it
+// on resize. The whole #work is fixed-positioned and centred on the eye via
+// --wheel-x/--wheel-y (styles.css html[data-wheel-placed]); its size comes from the
+// residual width through --wheel-scale, which also drives the CSS geometry (stage/
+// perspective/ring/face) and the JS depth (RADIUS) so the 3D registration stays exact.
+const PHI = 1.6180339887498949;   // golden ratio (mirrors styles.css --phi)
+const WHEEL_FACE_BASE = 250;      // mirrors the .face width base in styles.css (like BASE_RADIUS ↔ 340)
+const WHEEL_DEPTH = 4;            // residual depth: R4 (even ⇒ a landscape φ:1 front face)
+// Hero copy sits at the MIRROR of the wheel's eye (flipping the spiral H+V reflects
+// the eye through the rect centre) and scales in lockstep with the wheel. Its scale
+// is the contain-fit width ÷ HERO_REF_W — the width at which the desktop copy's
+// authored px sizes read at 1× (≈ a 1512×897 laptop, where contain W ≈ 1451).
+const HERO_REF_W = 1451;         // TUNABLE: contain-fit width where the copy is 1×
+// Enlarged preview spans a band: from the GEN X copy's top line down to PREVIEW_GAP
+// px above the wheel's visible front card (lower than the old stage-box-top glue).
+const PREVIEW_GAP = 16;          // TUNABLE: px between the card's bottom and the front face
+const html = document.documentElement;
+
+// The nested residual rectangle left after `depth` whirling-square cuts of a φ:1
+// rectangle, cutting squares off the LEFT, TOP, RIGHT, then BOTTOM in turn.
+// Returns the residual's centre (cx, cy) and width (fw) as fractions of the whole
+// rect's W and H. Even depths are landscape φ:1 (matching the face); odd are portrait.
+function residualRect(depth) {
+  let x = 0, y = 0, w = PHI, h = 1;   // rect is φ wide × 1 tall
+  for (let i = 0; i < depth; i++) {
+    const s = Math.min(w, h);
+    switch (i % 4) {
+      case 0: x += s; w -= s; break;   // remove the square off the LEFT
+      case 1: y += s; h -= s; break;   // ...the TOP
+      case 2:         w -= s; break;   // ...the RIGHT
+      case 3:         h -= s; break;   // ...the BOTTOM
+    }
+  }
+  return { cx: (x + w / 2) / PHI, cy: y + h / 2, fw: w / PHI };
+}
+
+function placeWheel() {
+  // Contain-fit a φ:1 golden rectangle to the viewport (touches top/bottom or the
+  // sides, whichever first), centred. The front face fills residual R_depth of it.
+  const W = Math.min(window.innerWidth, window.innerHeight * PHI);
+  const H = W / PHI;
+  const ox = (window.innerWidth - W) / 2, oy = (window.innerHeight - H) / 2;
+  const depth = WHEEL_DEPTH;
+  const { cx, cy, fw } = residualRect(depth);
+  // Face width == residual width. The front face nets to z=0 (ring at -340*scale,
+  // face at +340*scale) so perspective magnification is 1 → CSS width == on-screen
+  // width. Hence scale = residualWidth / faceBase. Fully dynamic — no floor and no
+  // cap — so the whole layout tracks the window without limit in either direction.
+  const scale = (fw * W) / WHEEL_FACE_BASE;
+  html.style.setProperty('--wheel-scale', scale.toFixed(4));
+  html.style.setProperty('--wheel-x', (ox + cx * W).toFixed(2) + 'px');
+  html.style.setProperty('--wheel-y', (oy + cy * H).toFixed(2) + 'px');
+  html.setAttribute('data-wheel-placed', '');   // flip CSS to the fixed-eye layout
+  RADIUS = BASE_RADIUS * scale;
+
+  // Top-right controls hug the golden rectangle's top-right corner (not the
+  // viewport corner), so they sit inside the spiral's frame and track it. ox/oy
+  // are the rect's margins; the rect is centred, so ox is also its distance from
+  // the viewport's right edge — hence the controls' right/top insets are ox/oy.
+  html.style.setProperty('--controls-x', ox.toFixed(2) + 'px');
+  html.style.setProperty('--controls-y', oy.toFixed(2) + 'px');
+
+  // Hero copy → the diagonally-opposite (mirror) eye, scaled with the viewport (no floor/cap).
+  const heroScale = W / HERO_REF_W;
+  html.style.setProperty('--hero-scale', heroScale.toFixed(4));
+  html.style.setProperty('--hero-x', (ox + (1 - cx) * W).toFixed(2) + 'px');
+  html.style.setProperty('--hero-y', (oy + (1 - cy) * H).toFixed(2) + 'px');
+  html.setAttribute('data-hero-placed', '');
+
+  // Enlarged preview band: top = the GEN X copy's top line, bottom = a small gap
+  // above the wheel's front face. Expressed as offsets from #work (the preview's
+  // absolute containing block). Measured AFTER the wheel+hero vars above are set,
+  // so getBoundingClientRect reflects this frame's transforms.
+  const frontCardH = (fw * W) / PHI;                        // landscape φ:1 front face height
+  const bandBottom = (oy + cy * H) - frontCardH / 2 - PREVIEW_GAP;  // viewport y
+  const workRect = workEl.getBoundingClientRect();
+  const heroTop = heroCopy.getBoundingClientRect().top;
+  html.style.setProperty('--preview-top', (heroTop - workRect.top).toFixed(2) + 'px');
+  html.style.setProperty('--preview-bottom', (workRect.bottom - bandBottom).toFixed(2) + 'px');
+}
+
+// Fill the enlarged card, then place + size the wheel and lay out the faces at the
+// resulting depth.
+settlePreview();
+placeWheel();
 render();
+
+// Re-place on resize / rotate; render() re-lays the faces at the new depth.
+addEventListener('resize', () => { placeWheel(); render(); });
+
+// The hero copy + card reflow once the web fonts load (title/blurb change height);
+// re-place then so the band offsets are measured against the real fonts, not the
+// fallback-font ones.
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => { placeWheel(); render(); });
+}
+
+// Theme control: two native radios select light/dark. Applying = set data-theme on
+// <html> and persist. The initial theme is set pre-paint by the head script; here we
+// just check the matching radio and react to changes. localStorage key 'theme' is
+// shared with the head script.
+const themeRadios = document.querySelectorAll('.js-theme-radio');
+
+function syncThemeControl() {
+  const theme = document.documentElement.dataset.theme;
+  themeRadios.forEach((radio) => { radio.checked = radio.value === theme; });
+}
+
+themeRadios.forEach((radio) => {
+  radio.addEventListener('change', () => {
+    if (!radio.checked) return;
+    document.documentElement.dataset.theme = radio.value;
+    localStorage.setItem('theme', radio.value);
+  });
+});
+
+syncThemeControl();
+
+// CRT power: a native checkbox toggles the phosphor overlay. Same shape as the
+// theme control — the initial state is applied pre-paint by the head script
+// (data-crt on <html>, localStorage key 'crt', default on); here we sync the
+// checkbox to it and persist changes.
+const crtToggle = document.querySelector('.js-crt-toggle');
+
+function syncCrtControl() {
+  crtToggle.checked = document.documentElement.dataset.crt !== 'off';
+}
+
+crtToggle.addEventListener('change', () => {
+  const state = crtToggle.checked ? 'on' : 'off';
+  document.documentElement.dataset.crt = state;
+  localStorage.setItem('crt', state);
+});
+
+syncCrtControl();
