@@ -278,6 +278,9 @@ const HERO_REF_W = 1451;         // TUNABLE: contain-fit width where the copy is
 // Enlarged preview spans a band: from the GEN X copy's top line down to PREVIEW_GAP
 // px above the wheel's visible front card (lower than the old stage-box-top glue).
 const PREVIEW_GAP = 16;          // TUNABLE: px between the card's bottom and the front face
+// A tall GEN X copy would lift the card's top-right corner past the spiral's arc;
+// when it would, the card's top drops just enough to keep ARC_GAP px inside it.
+const ARC_GAP = 8;               // TUNABLE: px the card's top-right corner keeps inside the arc
 const html = document.documentElement;
 
 // The nested residual rectangle left after `depth` whirling-square cuts of a φ:1
@@ -339,7 +342,15 @@ function placeWheel() {
   const bandBottom = (oy + cy * H) - frontCardH / 2 - PREVIEW_GAP;  // viewport y
   const workRect = workEl.getBoundingClientRect();
   const heroTop = heroCopy.getBoundingClientRect().top;
-  html.style.setProperty('--preview-top', (heroTop - workRect.top).toFixed(2) + 'px');
+  // The card's top-right corner (#work's right edge, since the card spans #work)
+  // lies under the arc drawn in the first TOP square: centre at that square's
+  // bottom-left corner (ox + H, oy + s), radius s = (φ−1)·H. Lowest allowed top is
+  // where the arc crosses the card's right edge, plus ARC_GAP.
+  const arcR = (PHI - 1) * H;
+  const arcDx = workRect.right - (ox + H);
+  const arcTop = (oy + arcR) - Math.sqrt(arcR * arcR - arcDx * arcDx) + ARC_GAP;
+  const cardTop = Math.max(heroTop, arcTop);
+  html.style.setProperty('--preview-top', (cardTop - workRect.top).toFixed(2) + 'px');
   html.style.setProperty('--preview-bottom', (workRect.bottom - bandBottom).toFixed(2) + 'px');
 }
 
@@ -352,12 +363,11 @@ render();
 // Re-place on resize / rotate; render() re-lays the faces at the new depth.
 addEventListener('resize', () => { placeWheel(); render(); });
 
-// The hero copy + card reflow once the web fonts load (title/blurb change height);
+// The hero copy reflows when the web fonts swap in (title/blurb change height);
 // re-place then so the band offsets are measured against the real fonts, not the
-// fallback-font ones.
-if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(() => { placeWheel(); render(); });
-}
+// fallback-font ones. Observing the copy's size catches the swap whenever it lands —
+// Safari can resolve document.fonts.ready before the fonts have even been requested.
+new ResizeObserver(() => { placeWheel(); render(); }).observe(heroCopy);
 
 // Theme control: two native radios select light/dark. Applying = set data-theme on
 // <html> and persist. The initial theme is set pre-paint by the head script; here we
